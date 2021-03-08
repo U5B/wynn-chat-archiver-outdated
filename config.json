@@ -1,0 +1,65 @@
+{
+    "masterUser": "username",
+    "ip": "play.wynncraft.com",
+    "port": "25565",
+    "version": "1.16.4",
+
+    "debug": false,
+    "viewerPort": "8080",
+
+    "bombTracker": true,
+    "guildTracker": true,
+    "shoutTracker": true,
+
+    "hubRestartMessage": " 🔄 **Connected to hub because of server restart...**",
+    "firstConnectMessage": " ☑️ **Connected to wynncraft.**",
+    "worldConnectMessage": " ✅ **Connected!**",
+    "worldReconnectMessage": " 🔄 **Reconnecting...**",
+    "processEndMessage": " 🛑 **Stopping entire bot. A restart from terminal is required!!!**",
+    "kickMessage": " 🛑 **Kicked.**",
+    "startWCA": " 🔄 **Starting WCA.**",
+    "stopWCA": " 🛑 **Stopping WCA.**",
+
+    "masterDiscordUser": "000000000000000000",
+    "masterDiscordRole": "000000000000000000",
+    
+    "prefix": "w!",
+    "guildid": "000000000000000000",
+    "guildChannel": "000000000000000000",
+    "statusChannel": "000000000000000000",
+    "commandChannel": "000000000000000000",
+    "testChannel": "000000000000000000",
+    "shoutChannel": "000000000000000000",
+    
+    "territoryChannel": "000000000000000000",
+    "territoryRole": "000000000000000000",
+
+    "guildChatChannel": "000000000000000000",
+    "guildEmoji": "<:uwu:000000000000000000>",
+    "guildBankChannel": "000000000000000000",
+    "logGuildBankChannel": "000000000000000000",
+
+    "combatXPRole": "000000000000000000",
+    "dungeonRole": "000000000000000000",
+    "lootRole": "000000000000000000",
+    "professionSpeedRole": "000000000000000000",
+    "professionXPRole": "000000000000000000",
+
+    "bombChannel": "000000000000000000",
+    "logBombChannel": "000000000000000000",
+    "combatXPChannel": "000000000000000000",
+    "dungeonChannel": "000000000000000000",
+    "lootChannel": "000000000000000000",
+    "professionSpeedChannel": "000000000000000000",
+    "professionXPChannel": "000000000000000000",
+
+    "__combatXPEmoji": "<:bomb_combat_xp:000000000000000000>",
+    "__dungeonEmoji": "<:bomb_dungeon:000000000000000000>",
+    "__lootEmoji": "<:bomb_loot:000000000000000000>",
+    "__professionSpeedEmoji": "<:bomb_prof_speed:000000000000000000>",
+    "__professionXPEmoji": "<:bomb_prof_xp:000000000000000000>",
+
+
+    "test": "test"
+
+}
