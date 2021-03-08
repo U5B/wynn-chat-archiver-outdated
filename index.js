@@ -59,11 +59,11 @@ function stripthes (str) {
   return str.replace(/§(?:[0-9a-z])/g, '')
 }
 // SECTION: end color functions
-let now = new Date(Date.now()).toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })
-let currentTime = new Date(Date.now()).toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles' })
+let nowDate = `[${new Date(Date.now()).toLocaleString('en-US')}]`
+let now = `[${new Date(Date.now()).toLocaleTimeString('en-US')}]`
 setInterval(() => {
-  now = new Date(Date.now()).toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })
-  currentTime = new Date(Date.now()).toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles' })
+  nowDate = `[${new Date(Date.now()).toLocaleString('en-US')}]`
+  now = `[${new Date(Date.now()).toLocaleTimeString('en-US')}]`
 }, 1000)
 
 // SECTION: begin logging
@@ -77,38 +77,38 @@ function logging () {
   // COMMENT: This logging was used with the mineflayer-dashboard logger, however I don't use the dashboard anymore
   console.log = function () {
     const text = util.format.apply(this, arguments) + '\n'
-    ds.write(now + ' [LOG] ' + text) // COMMENT: write to log formatted
+    ds.write(nowDate + ' [LOG] ' + text) // COMMENT: write to log formatted
     if (config.debug === true) {
-      ls.write(now + ' [LOG] ' + stripthes(text)) // COMMENT: write to log unformatted
-      process.stdout.write(now + ' [LOG] ' + text)
+      ls.write(nowDate + ' [LOG] ' + stripthes(text)) // COMMENT: write to log unformatted
+      process.stdout.write(nowDate + ' [LOG] ' + text)
     }
   }
   console.warn = function () {
     const text = util.format.apply(this, arguments) + '\n'
-    ds.write(now + ' [WARN] ' + text) // COMMENT: write to log formatted
-    ls.write(now + ' [WARN] ' + stripthes(text)) // COMMENT: write to log unformatted
-    process.stdout.write(now + ` ${warns('[WARN]')} ` + warns(text))
+    ds.write(nowDate + ' [WARN] ' + text) // COMMENT: write to log formatted
+    ls.write(nowDate + ' [WARN] ' + stripthes(text)) // COMMENT: write to log unformatted
+    process.stdout.write(nowDate + ` ${warns('[WARN]')} ` + warns(text))
   }
   console.error = function () {
     const text = util.format.apply(this, arguments) + '\n'
-    ds.write(now + ' [ERR] ' + text) // COMMENT: write to log formatted
-    ls.write(now + ' [ERR] ' + stripthes(text)) // COMMENT: write to log unformatted
-    process.stdout.write(now + ` ${errors('[ERR]')} ` + errors(text))
+    ds.write(nowDate + ' [ERR] ' + text) // COMMENT: write to log formatted
+    ls.write(nowDate + ' [ERR] ' + stripthes(text)) // COMMENT: write to log unformatted
+    process.stdout.write(nowDate + ` ${errors('[ERR]')} ` + errors(text))
   }
   console.debug = function () {
     const text = util.format.apply(this, arguments) + '\n'
-    ds.write(now + ' [DBUG] ' + text) // COMMENT: write to log formatted
+    ds.write(nowDate + ' [DBUG] ' + text) // COMMENT: write to log formatted
     if (config.debug === true) {
-      process.stdout.write(now + ' [DEBUG] ' + text)
+      process.stdout.write(nowDate + ' [DEBUG] ' + text)
     }
   }
   // COMMENT: info is used for chat messages
   console.info = function () {
     const text = util.format.apply(this, arguments) + '\n'
     const chat = util.format.apply(this, arguments)
-    ds.write(now + ' [CHAT] ' + text) // COMMENT: write to log formatted
-    ls.write(now + ' [CHAT] ' + stripthes(text)) // COMMENT: write to log unformatted
-    process.stdout.write(now + ' [CHAT] ' + mccolor(r(text)))
+    ds.write(nowDate + ' [CHAT] ' + text) // COMMENT: write to log formatted
+    ls.write(nowDate + ' [CHAT] ' + stripthes(text)) // COMMENT: write to log unformatted
+    process.stdout.write(nowDate + ' [CHAT] ' + mccolor(r(text)))
     // COMMENT: log chat with timestamp
     // COMMENT: code from U9G
     if (text.trim() === '') return
@@ -117,7 +117,7 @@ function logging () {
   }
   console.verbose = function () {
     const text = util.format.apply(this, arguments) + '\n'
-    ds.write(now + ' [VERBOSE] ' + text)
+    ds.write(nowDate + ' [VERBOSE] ' + text)
   }
 }
 logging()
@@ -207,7 +207,7 @@ function runBot (client) {
       console.warn('Connected to Wynncraft.')
       onWynncraft = true
       // COMMENT: onWynncraft is set to true on startup
-      client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.firstConnectMessage}`)
+      client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(nowDate + `${config.firstConnectMessage}`)
     })
     bot.on('login', async () => {
       // COMMENT: onAWorld is used for whenever the WCA successfully logs into a world that isn't the hub
@@ -473,7 +473,7 @@ function runBot (client) {
     })
   }
   async function logGuildMessageToDiscord (fullMessage, rank, username, message) {
-    const guildMessagePrefix = currentTime + ' '
+    const guildMessagePrefix = now + ' '
     const guildEmoji = config.guildEmoji ? config.guildEmoji : '🚩'
     let guildMessageSuffix
     if (rank === undefined) {
