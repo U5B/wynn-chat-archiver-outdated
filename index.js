@@ -148,6 +148,7 @@ function runBot (client) {
   // let nickUsername
   let playerAPICheck
   let cancelCompass
+  let compassCount = 0
   let test // COMMENT: placeholder
   // COMMENT: run this function whenever I recieve a discord message
   client.on('message', async message => {
@@ -319,6 +320,7 @@ function runBot (client) {
         resourcePackLoading = true
         // COMMENT: Accept the resource pack on login: Thanks mat#6207 for giving the code
         bot._client.once('resource_pack_send', () => {
+          compassCount = 0
           resourcePackLoading = true
           bot._client.write('resource_pack_receive', {
             result: 3
@@ -733,7 +735,7 @@ function runBot (client) {
             message.channel.send('Already offline, type -start to connect tp Wynncraft.')
             return
           }
-          bot.emit('kicked', 'discord', true)
+          bot.emit('kicked', ('discord', true))
           console.warn('WCA has quit game due to -stop')
           message.channel.send('WCA has quit game - type -start to start it')
           client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.stopWCA}`)
@@ -860,9 +862,16 @@ function runBot (client) {
       // I want to minimize it taking up player slots in critical areas
       setTimeout(() => {
         if (itemHeld === 'compass') {
-          console.warn('Connecting to WC...')
-          client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.worldReconnectMessage}`)
-          bot.activateItem()
+          compassCount = compassCount + 1
+          if (compassCount <= 3) {
+            compassCount = 0
+            console.error('Failed 3 times, trying another lobby.')
+            bot.chat('/hub')
+          } else {
+            console.warn(`[${compassCount}/3] Connecting to WC...`)
+            client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.worldReconnectMessage}`)
+            bot.activateItem()
+          }
         }
       }, 1000)
     }
@@ -921,6 +930,7 @@ function runBot (client) {
     bot.on('kicked', (reason, loggedIn) => {
       // COMMENT: Shut all the bot things down when kicked or disconnected
       onWynncraft = false
+      write() // COMMENT: write chat to the log file
       // npc()
       // bot.viewer.close() // COMMENT: remove this if you are not using prismarine-viewer
       clearInterval(cancelCompass)
@@ -942,13 +952,14 @@ function runBot (client) {
   process.once('SIGINT', () => {
     // COMMENT: When exiting, do these things
     // bot.viewer.close() // COMMENT: remove this if you are not using prismarine-viewer
+    write()
     bot.quit()
     console.error('shutting down due to someone pushing ctrl+c')
     client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` <@!${config.masterDiscordUser}> ${config.processEndMessage}`)
     client.user.setStatus('invisible')
     setTimeout(() => {
       process.exit()
-    }, 1000)
+    }, 5000)
   })
 }
 
