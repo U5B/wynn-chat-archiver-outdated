@@ -863,7 +863,7 @@ function runBot (client) {
       setTimeout(() => {
         if (itemHeld === 'compass') {
           compassCount = compassCount + 1
-          if (compassCount <= 3) {
+          if (compassCount >= 3) {
             compassCount = 0
             console.error('Failed 3 times, trying another lobby.')
             bot.chat('/hub')
