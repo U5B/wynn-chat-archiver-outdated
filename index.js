@@ -148,7 +148,8 @@ function runBot (client) {
   // let nickUsername
   let playerAPICheck
   let cancelCompass
-  let compassCount = 0
+  let compassRetry = 0
+  let compassRetryState = false
   let test // COMMENT: placeholder
   // COMMENT: run this function whenever I recieve a discord message
   client.on('message', async message => {
@@ -320,7 +321,8 @@ function runBot (client) {
         resourcePackLoading = true
         // COMMENT: Accept the resource pack on login: Thanks mat#6207 for giving the code
         bot._client.once('resource_pack_send', () => {
-          compassCount = 0
+          compassRetry = 0
+          compassRetryState = false
           resourcePackLoading = true
           bot._client.write('resource_pack_receive', {
             result: 3
@@ -861,14 +863,25 @@ function runBot (client) {
       // TODO: maybe have it select a world with low player count and/or low uptime
       // I want to minimize it taking up player slots in critical areas
       setTimeout(() => {
+        const compassRetryMax = 2
         if (itemHeld === 'compass') {
-          compassCount = compassCount + 1
-          if (compassCount >= 3) {
-            compassCount = 0
-            console.error('Failed 3 times, trying another lobby.')
-            bot.chat('/hub')
+          // COMMENT: retry on lobby or restart entire bot if hub is broken
+          compassRetry = compassRetry + 1
+          if (compassRetry >= compassRetryMax) {
+            if (compassRetryState === true) {
+              // COMMENT: not tested yet - hopefully it works lol
+              console.error(`[${compassRetry}/${compassRetryMax}] Restarting bot.`)
+              bot.quit()
+              setTimeout(() => {
+                loginBot()
+              }, 3000)
+            } else {
+              console.error(`[${compassRetry}/${compassRetryMax}] Trying a different lobby.`)
+              compassRetry = 0
+              bot.chat('/hub')
+            }
           } else {
-            console.warn(`[${compassCount}/3] Connecting to WC...`)
+            console.warn(`[${compassRetry}/${compassRetryMax}] Connecting to WC...`)
             client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.worldReconnectMessage}`)
             bot.activateItem()
           }
