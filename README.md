@@ -45,11 +45,19 @@ This is use at your own risk. If you decide to include any afk interaction with 
 This will probably not get you banned as there is no interaction with the game world other through chat. However there is still a risk.
 
 # Thank You
-Wynncraft: for creating Wynncraft and having an public API
-Wynntils: for some of the regexes used to parse messages & API
-node-wynn: using their API request handler
-Prismarine-JS: for being helpful when I was starting to code
-Regexr: for being an amazing regex tester and having a easy cheatsheet
+[Wynncraft](https://wynncraft.com/): for creating Wynncraft and having an public API
+
+[Wynntils](https://wynntils.com/): for some of the regexes used to parse messages & API
+
+[node-wynn](https://github.com/DevChromium/WynnJS/): using their API request handler
+
+[Prismarine-JS](https://github.com/PrismarineJS/): for their discord being helpful when I was starting to code
+
+[Regexr](https://regexr.com/): for being an amazing regex tester and having a easy cheatsheet
+
+[StackOverflow](https://stackoverflow.com/): for having answers to basic JS questions
+
+[NodeJS](https://nodejs.org/api/): for having actual documentation
 
 Thank you to the many individuals that answered my questions when making this.
 
