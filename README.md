@@ -25,17 +25,25 @@ Relys heavily on <a target="_blank" href="https://github.com/PrismarineJS/minefl
 ### Shout Tracking Prerequisites
 1. None
 
-## Install
-1. Install Node
-2. Have a discord bot
+# Install
+1. Install [Node.js](https://nodejs.dev/) version 14+ 
+2. Make a Discord bot.
 3. Download this github project to a folder.
 4. Run `npm install` in the folder.
 5. Edit cred.json and config.json for your needs.
 6. Run `node index.js`.
 
-### Disclaimer
+# Disclaimer
 This is use at your own risk. If you decide to include any afk interaction with the game world, there is a likely chance that you will be banned.
 
 This will probably not get you banned as there is no interaction with the game world other through chat. However there is still a risk.
+
+## TODO
+1. Split `index.js` into multiple files.
+2. Fix bugs.
+3. Add more chat-based features
+
+This is worked on in my spare time, and is probably badly coded. Suggesting 
+
 
 
