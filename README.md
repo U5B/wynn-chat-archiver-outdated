@@ -34,17 +34,28 @@ Relys heavily on <a target="_blank" href="https://github.com/PrismarineJS/minefl
 6. Make a directory called `logs` and a directory inside of `logs` called `debug`.
 7. Run `node index.js`.
 
-# Disclaimer
-This is use at your own risk. If you decide to include any afk interaction with the game world, there is a likely chance that you will be banned.
-
-This will probably not get you banned as there is no interaction with the game world other through chat. However there is still a risk.
-
 ## TODO
 1. Split `index.js` into multiple files.
 2. Fix bugs.
 3. Add more chat-based features
 
-This is worked on in my spare time, and is probably badly coded. Suggesting 
+# Disclaimer
+This is use at your own risk. If you decide to include any afk interaction with the game world, there is a likely chance that you will be banned.
+
+This will probably not get you banned as there is no interaction with the game world other through chat. However there is still a risk.
+
+# Thank You
+Wynncraft: for creating Wynncraft and having an public API
+Wynntils: for some of the regexes used to parse messages & API
+node-wynn: using their API request handler
+Prismarine-JS: for being helpful when I was starting to code
+Regexr: for being an amazing regex tester and having a easy cheatsheet
+
+Thank you to the many individuals that answered my questions when making this.
+
+# Misc
+This is worked on in my spare time, and is probably badly coded.
+Feel free to open an PR or issue if something could probably be improved
 
 
 
