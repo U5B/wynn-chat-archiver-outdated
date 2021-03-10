@@ -6,7 +6,7 @@ Relys heavily on <a target="_blank" href="https://github.com/PrismarineJS/minefl
 # Prerequisites
 1. Ability to follow instructions.
 2. A valid Mojang/Microsoft account with Minecraft.
-3. Node \<= 14
+3. [Node.js](https://nodejs.dev/) 14+
 4. Discord bot (only if you want to relay chat to discord and control the bot from discord)
 5. /toggle autojoin must be enabled on the account - class menu is not supported
 6. You must friend yourself by using /friend \<ign> for specific tracking.
