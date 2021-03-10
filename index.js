@@ -707,17 +707,16 @@ function runBot (client) {
       switch (command) {
         case 'help': {
           message.channel.send(
-            `\`\`\`
-            Trusted:
-            start = starts the WCA
-            stop = stops the WCA
-            exit = panic command to stop everything
-            restart = go to hub and join a new world
-            compass = force compass check
-            sudo = sudo the bot to do something in chat / make sure you put a slash before any commands
-            npc = function that makes the WCA look at the specific player in range / disabled
-            tps = get current tps on world
-            stats = get stats of world\`\`\``
+          `\`\`\`Trusted:
+          start = starts the WCA
+          stop = stops the WCA
+          exit = panic command to stop everything
+          hub = go to hub and join a new world
+          compass = force compass check
+          sudo = sudo the bot to do something in chat / make sure you put a slash before any commands
+          npc = function that makes the WCA look at the specific player in range / disabled
+          tps = get current tps on world
+          stats = get stats of world\`\`\``
           )
           break
         }
@@ -737,16 +736,16 @@ function runBot (client) {
             message.channel.send('Already offline, type -start to connect tp Wynncraft.')
             return
           }
-          bot.emit('kicked', ('discord', true))
-          console.warn('WCA has quit game due to -stop')
-          message.channel.send('WCA has quit game - type -start to start it')
+          bot.emit('kicked', 'discord', true)
+          console.warn('WCA has quit game due to -stop from discord')
+          message.channel.send('WCA has quit game due to discord - type -start to start it')
           client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.stopWCA}`)
           break
         }
-        case 'restart': {
+        case 'hub': {
           bot.chat('/hub')
-          console.warn('restarting...')
-          message.channel.send('restarting...')
+          console.warn('going to hub...')
+          message.channel.send('going to hub...')
           break
         }
         case 'compass': {
@@ -803,11 +802,11 @@ function runBot (client) {
       }
       case 'help': {
         message.channel.send(
-          `\`\`\`
-          null = returns null
-          help = returns this help message
-          random = returns a random player on that specific world
-          stream = toggle stream mode\`\`\``
+        `\`\`\`null = returns null
+        help = returns this help message
+        random = returns a random player on that specific world
+        stream = toggle stream mode
+        bomb = get bomb stats of a specific world\`\`\``
         )
         break
       }
