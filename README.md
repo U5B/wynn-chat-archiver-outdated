@@ -55,9 +55,7 @@ This will probably not get you banned as there is no interaction with the game w
 
 [Regexr](https://regexr.com/): for being an amazing regex tester and having a easy cheatsheet
 
-[StackOverflow](https://stackoverflow.com/): for having answers to basic JS questions
-
-[NodeJS](https://nodejs.org/api/): for having actual documentation
+[StackOverflow](https://stackoverflow.com/) & [NodeJS](https://nodejs.org/api/) & [DiscordJS](https://discord.js.org/): JS Documentation
 
 Thank you to the many individuals that answered my questions when making this.
 
