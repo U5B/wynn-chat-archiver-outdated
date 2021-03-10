@@ -31,7 +31,8 @@ Relys heavily on <a target="_blank" href="https://github.com/PrismarineJS/minefl
 3. Download this github project to a folder.
 4. Run `npm install` in the folder.
 5. Edit cred.json and config.json for your needs.
-6. Run `node index.js`.
+6. Make a directory called `logs` and a directory inside of `logs` called `debug`.
+7. Run `node index.js`.
 
 # Disclaimer
 This is use at your own risk. If you decide to include any afk interaction with the game world, there is a likely chance that you will be banned.
