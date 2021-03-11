@@ -163,7 +163,7 @@ function runBot (client) {
   })
   function loginBot () {
     // COMMENT: don't have two bots at once please
-    clearInterval(compassRetryTimeout)
+    clearTimeout(compassRetryTimeout)
     // COMMENT: get playercount of every world every 30 seconds
     writeOnlinePlayers()
     playerAPICheck = setInterval(async () => {
