@@ -70,6 +70,12 @@ setInterval(() => {
 const fileName = path.join('logs', `chat-${new Date(Date.now()).toLocaleDateString().replace(/\//g, '_')}.json`)
 let data = {}
 function logging () {
+  // COMMENT: handle rejections here I guess
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error(`Unhandled Rejection at: "${promise}"`)
+    console.error(`Reason: "${reason}"`)
+    // Application specific logging, throwing an error, or other logic here
+  })
   // COMMENT: all of the writestreams are located here
   const ls = fs.createWriteStream(`./logs/log-${new Date(Date.now()).toLocaleDateString().replace(/\//g, '_')}.txt`, { flags: 'a' }) // COMMENT: just unformatted chat messages
   const ds = fs.createWriteStream(`./logs/debug/debug-${new Date(Date.now()).toLocaleDateString().replace(/\//g, '_')}.txt`, { flags: 'a' }) // COMMENT: formatted chat messages and debug
@@ -148,14 +154,16 @@ function runBot (client) {
   // let nickUsername
   let playerAPICheck
   let cancelCompass
-  let compassRetry = 0
-  const compassRetryState = false
+  let compassRetry
+  let compassRetryTimeout
   let test // COMMENT: placeholder
   // COMMENT: run this function whenever I recieve a discord message
   client.on('message', async message => {
     runDiscord(message)
   })
   function loginBot () {
+    // COMMENT: don't have two bots at once please
+    clearInterval(compassRetryTimeout)
     // COMMENT: get playercount of every world every 30 seconds
     writeOnlinePlayers()
     playerAPICheck = setInterval(async () => {
@@ -175,7 +183,7 @@ function runBot (client) {
       password: pass,
       viewDistance: 'tiny'
     })
-    bot.setMaxListeners(69) // COMMENT: until they fix world switching memory bug
+    // bot.setMaxListeners(69) // COMMENT: until they fix world switching memory bug
     // COMMENT: load plugins
     bot.loadPlugin(tpsPlugin)
     // COMMENT: should be a list of functions to run when starting up the WCA
@@ -207,6 +215,7 @@ function runBot (client) {
     })
     bot.once('login', async () => {
       console.warn('Connected to Wynncraft.')
+      compassRetry = 0
       onWynncraft = true
       // COMMENT: onWynncraft is set to true on startup
       client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(nowDate + `${config.firstConnectMessage}`)
@@ -319,10 +328,9 @@ function runBot (client) {
     bot.on('normal_chat', async (message) => {
       if (message === 'Loading Resource Pack...') {
         resourcePackLoading = true
+        compassRetry = 0
         // COMMENT: Accept the resource pack on login: Thanks mat#6207 for giving the code
         bot._client.once('resource_pack_send', () => {
-          compassRetry = 0
-          resourcePackLoading = true
           bot._client.write('resource_pack_receive', {
             result: 3
           })
@@ -632,6 +640,7 @@ function runBot (client) {
     timer.addEventListener('targetAchieved', () => {
       msg.delete()
         .then(console.log('Bomb Message deleted'))
+
       timer.removeEventListener('minutesUpdated')
       timer.removeEventListener('targetAchieved')
       counter = 1
@@ -735,7 +744,7 @@ function runBot (client) {
             message.channel.send('Already offline, type -start to connect tp Wynncraft.')
             return
           }
-          bot.emit('kicked', 'discord', true)
+          bot.emit('kicked', 'discord')
           console.warn('WCA has quit game due to -stop from discord')
           message.channel.send('WCA has quit game due to discord - type -start to start it')
           client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.stopWCA}`)
@@ -868,10 +877,10 @@ function runBot (client) {
           if (compassRetry >= compassRetryMax) {
             // COMMENT: not tested yet - hopefully it works lol
             console.error(`[${compassRetry}/${compassRetryMax}] Restarting bot because of too many attempts.`)
-            bot.quit()
-            setTimeout(() => {
+            bot.emit('kicked', 'compass_retry')
+            compassRetryTimeout = setTimeout(() => {
               loginBot()
-            }, 3000)
+            }, 30000)
           } else {
             console.warn(`[${compassRetry}/${compassRetryMax}] Connecting to WC...`)
             client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.worldReconnectMessage}`)
@@ -979,6 +988,9 @@ async function writeOnlinePlayers () {
           console.error(err)
         }
       })
+    })
+    .catch(err => {
+      console.error(err)
     })
 }
 function listOnlinePlayers (world) {
