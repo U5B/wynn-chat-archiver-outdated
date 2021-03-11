@@ -3,6 +3,8 @@ A Wynncraft chat archiver. Logs chat to a file.
 
 Relys heavily on <a target="_blank" href="https://github.com/PrismarineJS/mineflayer">mineflayer</a> from PrismarineJS.
 
+Join my [Discord](https://discord.gg/3UXxqC5kr9/) to see it in action.
+
 # Prerequisites
 1. Ability to follow instructions.
 2. A valid Mojang/Microsoft account with Minecraft.
@@ -27,7 +29,7 @@ Relys heavily on <a target="_blank" href="https://github.com/PrismarineJS/minefl
 
 # Install
 1. Install [Node.js](https://nodejs.dev/) version 14+ 
-2. Make a Discord bot.
+2. Make a [Discord bot](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot).
 3. Download this github project to a folder.
 4. Run `npm install` in the folder.
 5. Edit cred.json and config.json for your needs.
