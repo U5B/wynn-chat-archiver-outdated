@@ -341,7 +341,7 @@ function runBot (client) {
         })
       }
       if (message === 'Server restarting!' || message === 'The server you were on previously has went down. You have been connected to a fallback server') {
-        client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` <@!${config.masterDiscordUser}> ${config.hubRestartMessage}`)
+        client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.hubRestartMessage} <@!${config.masterDiscordUser}>`)
       }
       const itemBombRegex = /^.* has thrown an Item Bomb!$/
       if (itemBombRegex.test(message)) {
@@ -532,7 +532,7 @@ function runBot (client) {
       world = currentWorld
       bot.chat('/hub')
       console.log(`going to hub because bomb was thrown on ${world}`)
-      client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` **Connected to hub because of ${bomb} Bomb thrown on ${world}**`)
+      client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.bombRestartMessage}`)
     }
     const bombMessageSuffix = `**${world}** by \`${username}\``
     const playerCount = listOnlinePlayers(world)
@@ -951,7 +951,7 @@ function runBot (client) {
       clearInterval(playerAPICheck)
       // clearInterval(npcInterval)
       console.error(reason, loggedIn)
-      client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}> ${config.kickMessage} \`${reason}\``)
+      client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
       client.user.setStatus('dnd')
       client.user.setPresence({
         status: 'dnd',
@@ -969,7 +969,7 @@ function runBot (client) {
     write()
     bot.quit()
     console.error('shutting down due to someone pushing ctrl+c')
-    client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` <@!${config.masterDiscordUser}> ${config.processEndMessage}`)
+    client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.processEndMessage} <@!${config.masterDiscordUser}>`)
     client.user.setStatus('invisible')
     setTimeout(() => {
       process.exit()
@@ -1032,11 +1032,11 @@ function getBombStats (world, stats) {
   // QUOTE: "this could be done so much better" - U9G
   // COMMENT: read onlinePlayers.json and pick a random player
   const parsed = JSON.parse(fs.readFileSync('./WCStats.json', 'utf8'))
-  const combatXPEmoji = config.combatXPEmoji ? config.combatXPEmoji : '<:bomb_red:809949233318199296>'
-  const lootEmoji = config.lootEmoji ? config.lootEmoji : '<:bomb_red:809949233318199296>'
-  const dungeonEmoji = config.dungeonEmoji ? config.dungeonEmoji : '<:bomb_red:809949233318199296>'
-  const professionSpeedEmoji = config.professionSpeedEmoji ? config.professionSpeedEmoji : '<:bomb_red:809949233318199296>'
-  const professionXPEmoji = config.professionXPEmoji ? config.professionXPEmoji : '<:bomb_red:809949233318199296>'
+  const combatXPEmoji = config.combatXPEmoji ? config.combatXPEmoji : '💣'
+  const lootEmoji = config.lootEmoji ? config.lootEmoji : '💣'
+  const dungeonEmoji = config.dungeonEmoji ? config.dungeonEmoji : '💣'
+  const professionSpeedEmoji = config.professionSpeedEmoji ? config.professionSpeedEmoji : '💣'
+  const professionXPEmoji = config.professionXPEmoji ? config.professionXPEmoji : '💣'
   let worldStats
   if (!parsed[`${world}`]) {
     worldStats = null
