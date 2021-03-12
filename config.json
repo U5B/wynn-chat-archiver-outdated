@@ -12,6 +12,7 @@
     "shoutTracker": true,
 
     "hubRestartMessage": " 🔄 **Connected to hub because of server restart...**",
+    "bombRestartMessage": " 🔄 **Connected to hub because of bomb...**",
     "firstConnectMessage": " ☑️ **Connected to wynncraft.**",
     "worldConnectMessage": " ✅ **Connected!**",
     "worldReconnectMessage": " 🔄 **Reconnecting...**",
