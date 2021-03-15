@@ -9,9 +9,11 @@ const client = new discord.Client({ disableMentions: 'everyone' })
 
 // SECTION: File system and other logging
 const process = require('process')
+const originalTitle = process.title
 const util = require('util')
 const fs = require('fs')
 const path = require('path')
+const axios = require('axios')
 
 // SECTION: Timers
 const Timer = require('easytimer.js').Timer
@@ -22,7 +24,8 @@ const config = require('./config.json')
 const cred = require('./cred.json')
 const wynnTerritoryFile = require('./territorylocations.json')
 const ter = wynnTerritoryFile.territories
-const NodeWynn = require('node-wynn')
+// const NodeWynn = require('node-wynn') // COMMENT: needed for requests to Wynncraft instead of Wynntils
+// const testFile = require('./onlinePlayers.json')
 
 // SECTION: begin color functions
 const chalk = require('chalk')
@@ -133,17 +136,15 @@ client.login(cred.discordToken)
     console.error(error)
   })
 client.once('ready', () => {
+  // COMMENT: I am fancy and want the title to be WCA once it is logged into discord.
+  process.title = config.processTitle ? config.processTitle : 'WCA'
+  console.warn(`Logged into Discord as ${client.user.tag}`)
   client.guilds.cache.get(config.guildid).channels.cache.get(config.bombChannel).bulkDelete(100) // COMMENT: how do you delete specific messages after a certain time
-  client.user.setPresence({
-    status: 'idle',
-    activity: {
-      name: 'loading'
-    }
-  })
   runBot(client)
 })
 // SECTION: end Discord / begin WCA
 function runBot (client) {
+  discordStatus('starting')
   // COMMENT: "global" variables
   let bot
   let onWynncraft
@@ -156,6 +157,7 @@ function runBot (client) {
   let cancelCompass
   let compassRetry
   let compassRetryTimeout
+  let hubTimer
   let test // COMMENT: placeholder
   // COMMENT: run this function whenever I recieve a discord message
   client.on('message', async message => {
@@ -204,121 +206,24 @@ function runBot (client) {
     bot.once('spawn', async () => {
       // COMMENT: prismarine-viewer isn't needed for this bot but it looks cool
       // mineflayerViewer(bot, { viewDistance: 8, port: config.viewerPort, firstPerson: false })
-      cancelCompass = setInterval(async () => {
-        // COMMENT: if WCA failed first check and is still in the hub, run the check again for good measure
-        if (onAWorld === false && onWynncraft === true && resourcePackLoading === false) {
-          compass()
-        }
-      }, 60000)
       data = await getData()
       setInterval(write, 10000)
     })
     bot.once('login', async () => {
-      console.warn('Connected to Wynncraft.')
-      compassRetry = 0
-      onWynncraft = true
-      // COMMENT: onWynncraft is set to true on startup
-      client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(nowDate + `${config.firstConnectMessage}`)
+      onceLogin()
     })
     bot.on('login', async () => {
-      // COMMENT: onAWorld is used for whenever the WCA successfully logs into a world that isn't the hub
-      // COMMENT: resoucePackLoading is used for waiting for the resource pack to load
-      onAWorld = false
-      resourcePackLoading = false
-      // COMMENT: clear any compass checks
-      // COMMENT: fallback to WC0 until the world is online
-      currentWorld = 'WC0'
-      client.user.setPresence({
-        status: 'idle',
-        activity: {
-          name: 'in a lobby/class menu - play.wynncraft.com'
-        }
-      })
-      console.warn('Connected.')
-      // COMMENT: Wait for the chunks to load before checking
-      bot.waitForChunksToLoad(() => {
-        setTimeout(() => {
-          compass()
-        }, 2000)
-      })
+      onLogin()
     })
     bot.on('windowOpen', (window) => {
-      // COMMENT: this is used so that I can technically support any gui in one section of my code
-      const win = JSON.parse(window.title)
-      if (win.text === 'Wynncraft Servers') {
-        // COMMENT: Hardcoded to click on the recommended server slot - might need to be changed if Wynncraft updates their gui
-        bot.clickWindow(13, 0, 0)
-        bot.closeWindow(window)
-      } else if (win.text === '§8§lSelect a Class') {
-        console.error(`somehow in class menu "${win.text}" going to hub - use /toggle autojoin`)
-        bot.closeWindow(window)
-        bot.chat('/hub')
-      } else {
-        // COMMENT: debugging purposes, this shouldn't happen unless stuck in the class menu
-        console.error(`opened unknown gui with title "${win.text}"`)
-        bot.closeWindow(window)
-      }
+      onWindowOpen(window)
     })
     // COMMENT: This is special regexes for logging and when I can't detect special chats via chatAddPattern
     bot.on('message', async (message) => {
-      const messageMotd = String(message.toMotd())
-      // const messageString = String(message.toString())
-      // const messageAnsi = message.toAnsi()
-      realUsername = null
-      // COMMENT: Exclude spam has many messages that clutter up your chat such as level up messages and other stuff like that
-      const excludeSpam = /^(?:.+ \d+\/\d+ {4}(?:.*) {4}. \d+\/\d+|.+ is now level .*|\[Info\] .+|As the sun rises, you feel a little bit safer...|\[\+\d+ Soul Points?\]|You still have \d+ unused skill points! Click with your compass to use them!)$/
-      if (excludeSpam.test(message.toString())) {
-        return
-      } else {
-        console.info(`${message.toMotd()}`)
-      }
-      // COMMENT: exclude the actionbar because that is the most spammy
-      const excludeActionbar = /^(?:.+ \d+\/\d+ {4}(?:.*) {4}. \d+\/\d+)$/
-      if (excludeActionbar.test(message.toString())) {
-        return
-      } else {
-        const jsonString = JSON.stringify(message.json)
-        console.verbose(jsonString)
-        // const jsonParsed = message.json
-        // COMMENT: Champion Nickname detector - used to get the real username of the bomb thrower and guild messages
-        if (message.json.extra) {
-          for (let i = 0; i < message.json.extra.length; i++) {
-            if (message.json?.extra[i].extra?.[0]?.hoverEvent?.value?.[1]?.text === '\'s real username is ') {
-              realUsername = message.json.extra[i]?.extra?.[0]?.hoverEvent?.value?.[2]?.text
-              // nickUsername = message.json?.extra[i].extra?.[0]?.hoverEvent?.value?.[0]?.text
-              // console.log(realUsername)
-              // console.log(nickUsername)
-            }
-          }
-        }
-        const guildMessageRegex = /§r§3\[(?:|§r§b(★|★★|★★★|★★★★|★★★★★))§r§3(.*)\]§r§b (.*)§r/
-        if (guildMessageRegex.test(messageMotd)) {
-          const matches = guildMessageRegex.exec(messageMotd)
-          if (matches[2] === 'INFO') {
-            return
-          }
-          const [fullMatch, guildRank, guildUsername, guildMessage] = matches
-          logGuildMessageToDiscord(fullMatch, guildRank, guildUsername, guildMessage)
-        }
-        const guildJoinRegex = /§r§b(\w+)§r§3 has logged into server §r§b(\w+)§r§3 as §r§ba (\w+)§r/
-        if (guildJoinRegex.test(messageMotd)) {
-          const matches = guildJoinRegex.exec(messageMotd)
-          if (matches[1] === bot.username) {
-            return
-          }
-          const [fullMatch, guildUsername, guildWorld, guildClass] = matches
-          logGuildJoinToDiscord(fullMatch, guildUsername, guildWorld, guildClass)
-        }
-      }
-      test = true
+      onMessage(message)
     })
     bot.on('bossBarUpdated', async (bossBar) => {
-      // COMMENT: get off the server if a bomb is in the bossbar
-      const bombBarRegex = /(.+) from (.+) \[(\d+) min\]/
-      const bossBarString = stripthes(bossBar.title.text)
-      if (bombBarRegex.test(bossBarString)) {
-        bot.chat('/hub')
-      }
+      onBossBarUpdated(bossBar)
     })
     // COMMENT: Normal chat is pretty much everything but actionbar messages
     bot.chatAddPattern(
@@ -326,37 +231,7 @@ function runBot (client) {
       'normal_chat'
     )
     bot.on('normal_chat', async (message) => {
-      if (message === 'Loading Resource Pack...') {
-        resourcePackLoading = true
-        compassRetry = 0
-        // COMMENT: Accept the resource pack on login: Thanks mat#6207 for giving the code
-        bot._client.once('resource_pack_send', () => {
-          bot._client.write('resource_pack_receive', {
-            result: 3
-          })
-          bot._client.write('resource_pack_receive', {
-            result: 0
-          })
-          console.log('Wynnpack accepted.')
-        })
-      }
-      if (message === 'Server restarting!' || message === 'The server you were on previously has went down. You have been connected to a fallback server') {
-        client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.hubRestartMessage} <@!${config.masterDiscordUser}>`)
-      }
-      const itemBombRegex = /^.* has thrown an Item Bomb!$/
-      if (itemBombRegex.test(message)) {
-        // COMMENT: get off the server if an item bomb is thrown - some people do item bomb parties
-        bot.chat('/hub')
-      }
-      const botJoinRegex = /(\w+) has logged into server (\w+) as (?:a|an) (.+)/
-      if (botJoinRegex.test(message)) {
-        const matches = botJoinRegex.exec(message)
-        if (matches[1] === bot.username) {
-          const [, username, world, wynnclass] = matches
-          online(username, world, wynnclass)
-          // logGuildJoinToDiscord(message, username, world, wynnclass)
-        }
-      }
+      onNormalChat(message)
     })
     // COMMENT: execute other things in everything
   }
@@ -378,21 +253,7 @@ function runBot (client) {
       'log_bomb'
     )
     bot.on('log_bomb', async (message, username, bomb, world) => {
-      // COMMENT: Bomb tracking stuff
-      const santitze = /(\[.+\] .+: .*|\[.* . .*\] .*|.* whispers to you:)/g
-      const santitzeMessage = String(message)
-      const timeLeft = null
-      if (username === config.masterUser || realUsername === config.masterUser) {
-        // COMMENT: you PM the bot "Combat XP on WC1" and it will get a random player from that world and post the bomb to discord
-        const randomPlayer = getRandomPlayer(world)
-        logBombToDiscord(message, randomPlayer, bomb, world, timeLeft)
-      } else {
-        // COMMENT: Santize input so that other people can't execute it via DMs
-        if (santitze.test(santitzeMessage)) {
-          return
-        }
-        logBombToDiscord(message, username, bomb, world, timeLeft)
-      }
+      onLogBomb(message, username, bomb, world)
     })
   }
   function guildTracker () {
@@ -400,30 +261,19 @@ function runBot (client) {
     bot.chatAddPattern(
       // COMMENT: Territory tracking
       /^\[WAR\] The war for (.+) will start in (\d+) (.+)\.$/,
-      'territory'
+      'log_territory'
     )
     bot.chatAddPattern(
       // COMMENT: Guild Bank tracking
       /^\[INFO\] ((.+) (deposited|withdrew) (\d+x) (.+) (from|to) the Guild Bank \((.+)\))$/,
       'log_guild_bank'
     )
-    bot.on('territory', async (territory, time, minutes) => {
-      // COMMENT: If this ever fires, Wynncraft changed their wars
-      if (minutes === 'minute') {
-        console.error('A territory message was sent as a minute.')
-        return
-      }
-      if (minutes !== 'seconds' || minutes !== 'second') {
-        territoryTracker(territory, time)
-      }
+    bot.on('log_territory', async (territory, time, minutes) => {
+      onLogTerritory(territory, time, minutes)
     })
     bot.on('log_guild_bank', async (message, username, deposit, amount, item, fromto, rank) => {
-      // COMMENT: Use their real username if they are a Champion nick
-      if (realUsername === null || realUsername === undefined) {
-        logGuildBankToDiscord(message, username, deposit, amount, item, fromto, rank)
-      } else {
-        logGuildBankToDiscord(message, realUsername, deposit, amount, item, fromto, rank)
-      }
+      // COMMENT: Guild
+      logGuildBankToDiscord(message, username, deposit, amount, item, fromto, rank)
     })
   }
   function shoutTracker () {
@@ -439,6 +289,217 @@ function runBot (client) {
     })
   }
   // SECTION: behind the scenes functions that need to go into their own files
+  async function onceLogin () {
+    console.warn('Connected to Wynncraft.')
+    compassRetry = 0
+    // COMMENT: onWynncraft is set to true on startup
+    onWynncraft = true
+    client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(nowDate + `${config.firstConnectMessage}`)
+  }
+  async function onLogin () {
+    clearInterval(cancelCompass)
+    // COMMENT: onAWorld is used for whenever the WCA successfully logs into a world that isn't the hub
+    // COMMENT: resoucePackLoading is used for waiting for the resource pack to load
+    onAWorld = false
+    resourcePackLoading = false
+    // COMMENT: clear any compass checks
+    // COMMENT: fallback to WC0 until the world is online
+    currentWorld = 'WC0'
+    discordStatus()
+    console.warn('Connected.')
+    // COMMENT: Wait for the chunks to load before checking
+    bot.waitForChunksToLoad(() => {
+      compass()
+      cancelCompass = setInterval(async () => {
+        // COMMENT: if WCA failed first check and is still in the hub, run the check again for good measure
+        // COMMENT: only do this check if you know for sure you are in the hub
+        if (onAWorld === false && onWynncraft === true && resourcePackLoading === false) {
+          compass()
+        }
+      }, 60000)
+    })
+  }
+  function compass () {
+    // COMMENT: If already on a world, loading the resource pack or is has been kicked from the server, then do nothing
+    if (onAWorld === true && onWynncraft === false && resourcePackLoading === true) {
+      return
+    }
+    console.log('compass check')
+    bot.setQuickBarSlot(0)
+    bot.updateHeldItem()
+    // COMMENT: assume that bot is slightly stuck if the held item is nothing
+    if (bot.heldItem === null || bot.heldItem === undefined) {
+      console.log(bot.heldItem)
+    } else {
+      const itemHeld = bot.heldItem.name
+      console.log(itemHeld)
+      // COMMENT: click on the recommended world if holding a compass
+      // TODO: maybe have it select a world with low player count and/or low uptime
+      // I want to minimize it taking up player slots in critical areas
+      setTimeout(() => {
+        const compassRetryMax = 3
+        if (itemHeld === 'compass') {
+          // COMMENT: retry on lobby or restart entire bot if hub is broken
+          compassRetry = compassRetry + 1
+          if (compassRetry >= compassRetryMax) {
+            // COMMENT: not tested yet - hopefully it works lol
+            console.error(`[${compassRetry}/${compassRetryMax}] Restarting bot because of too many attempts.`)
+            bot.emit('kicked', 'compass_retry')
+            compassRetryTimeout = setTimeout(() => {
+              loginBot()
+            }, 30000)
+          } else {
+            console.warn(`[${compassRetry}/${compassRetryMax}] Connecting to WC...`)
+            client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.worldReconnectMessage}`)
+            bot.activateItem()
+          }
+        }
+      }, 1000)
+    }
+    // if (itemHeld === 'bow' || itemHeld === 'wooden_shovel' || itemHeld === 'iron_shovel' || itemHeld === 'stone_shovel' || itemHeld === 'shears') {
+    //  bot.setQuickBarSlot(7)
+    // }
+  }
+  async function onWindowOpen (window) {
+    // COMMENT: this is used so that I can technically support any gui in one section of my code
+    const win = JSON.parse(window.title)
+    if (win.text === 'Wynncraft Servers') {
+      // COMMENT: Hardcoded to click on the recommended server slot - might need to be changed if Wynncraft updates their gui
+      bot.clickWindow(13, 0, 0)
+      bot.closeWindow(window)
+    } else if (win.text === '§8§lSelect a Class') {
+      console.error(`somehow in class menu "${win.text}" going to hub - use /toggle autojoin`)
+      bot.closeWindow(window)
+      hub()
+    } else {
+      // COMMENT: debugging purposes, this shouldn't happen unless stuck in the class menu
+      console.error(`opened unknown gui with title "${win.text}"`)
+      bot.closeWindow(window)
+    }
+  }
+  async function onMessage (message) {
+    const messageMotd = String(message.toMotd())
+    // const messageString = String(message.toString())
+    // const messageAnsi = message.toAnsi()
+    realUsername = null
+    // COMMENT: Exclude spam has many messages that clutter up your chat such as level up messages and other stuff like that
+    const excludeSpam = /^(?:.+ \d+\/\d+ {4}(?:.*) {4}. \d+\/\d+|.+ is now level .*|\[Info\] .+|As the sun rises, you feel a little bit safer...|\[\+\d+ Soul Points?\]|You still have \d+ unused skill points! Click with your compass to use them!)$/
+    if (excludeSpam.test(message.toString())) {
+      return
+    } else {
+      console.info(`${message.toMotd()}`)
+    }
+    // COMMENT: exclude the actionbar because that is the most spammy
+    const excludeActionbar = /^(?:.+ \d+\/\d+ {4}(?:.*) {4}. \d+\/\d+)$/
+    if (!excludeActionbar.test(message.toString())) {
+      const jsonString = JSON.stringify(message.json)
+      console.verbose(jsonString)
+      // const jsonParsed = message.json
+      // COMMENT: Champion Nickname detector - used to get the real username of the bomb thrower and guild messages
+      if (message.json.extra) {
+        for (let i = 0; i < message.json.extra.length; i++) {
+          if (message.json?.extra[i].extra?.[0]?.hoverEvent?.value?.[1]?.text === '\'s real username is ') {
+            realUsername = message.json.extra[i]?.extra?.[0]?.hoverEvent?.value?.[2]?.text
+            // nickUsername = message.json?.extra[i].extra?.[0]?.hoverEvent?.value?.[0]?.text
+            // console.log(realUsername)
+            // console.log(nickUsername)
+          }
+        }
+      }
+      const guildMessageRegex = /§r§3\[(?:|§r§b(★|★★|★★★|★★★★|★★★★★))§r§3(.*)\]§r§b (.*)§r/
+      if (guildMessageRegex.test(messageMotd)) {
+        const matches = guildMessageRegex.exec(messageMotd)
+        if (matches[2] === 'INFO') {
+          return
+        }
+        const [fullMatch, guildRank, guildUsername, guildMessage] = matches
+        logGuildMessageToDiscord(fullMatch, guildRank, guildUsername, guildMessage)
+      }
+      const guildJoinRegex = /§r§b(\w+)§r§3 has logged into server §r§b(\w+)§r§3 as §r§ba (\w+)§r/
+      if (guildJoinRegex.test(messageMotd)) {
+        const matches = guildJoinRegex.exec(messageMotd)
+        if (matches[1] === bot.username) {
+          return
+        }
+        const [fullMatch, guildUsername, guildWorld, guildClass] = matches
+        logGuildJoinToDiscord(fullMatch, guildUsername, guildWorld, guildClass)
+      }
+    }
+  }
+  async function onNormalChat (message) {
+    if (message === 'Loading Resource Pack...') {
+      clearInterval(cancelCompass)
+      resourcePackLoading = true
+      compassRetry = 0
+      discordStatus()
+      // COMMENT: Accept the resource pack on login: Thanks mat#6207 for giving the code
+      bot._client.once('resource_pack_send', () => {
+        bot._client.write('resource_pack_receive', {
+          result: 3
+        })
+        bot._client.write('resource_pack_receive', {
+          result: 0
+        })
+        console.log('Wynnpack accepted.')
+      })
+    }
+    if (message === 'Server restarting!' || message === 'The server you were on previously has went down. You have been connected to a fallback server') {
+      client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.hubRestartMessage} <@!${config.masterDiscordUser}>`)
+    }
+    const bombRegex = /^Want to thank (.+)\? Click here to thank them!$/
+    if (bombRegex.test(message)) {
+      // COMMENT: get off the server if an bomb is thrown - some people do item bomb parties
+      hubTimer = setTimeout(() => {
+        console.log(`going to hub because item bomb was thrown on ${currentWorld}`)
+        client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.bombRestartMessage}`)
+        hub()
+      }, 3000)
+    }
+    const botJoinRegex = /(\w+) has logged into server (\w+) as (?:a|an) (.+)/
+    if (botJoinRegex.test(message)) {
+      const matches = botJoinRegex.exec(message)
+      if (matches[1] === bot.username) {
+        const [, username, world, wynnclass] = matches
+        logOnline(username, world, wynnclass)
+        // logGuildJoinToDiscord(message, username, world, wynnclass)
+      }
+    }
+  }
+  async function onBossBarUpdated (bossBar) {
+    // COMMENT: get off the server if a bomb is in the bossbar
+    const bombBarRegex = /(.+) from (.+) \[(\d+) min\]/
+    const bossBarString = stripthes(bossBar.title.text)
+    if (bombBarRegex.test(bossBarString)) {
+      hub()
+    }
+  }
+  async function onLogBomb (message, username, bomb, world) {
+    // COMMENT: Bomb tracking stuff
+    const santitze = /(\[.+\] .+: .*|\[.* . .*\] .*|.* whispers to you:)/g
+    const santitzeMessage = String(message)
+    const timeLeft = null
+    if (username === config.masterUser || realUsername === config.masterUser) {
+      // COMMENT: you PM the bot "Combat XP on WC1" and it will get a random player from that world and post the bomb to discord
+      const randomPlayer = getRandomPlayer(world)
+      logBombToDiscord(message, randomPlayer, bomb, world, timeLeft)
+    } else {
+      // COMMENT: Santize input so that other people can't execute it via DMs
+      if (santitze.test(santitzeMessage)) {
+        return
+      }
+      logBombToDiscord(message, username, bomb, world, timeLeft)
+    }
+  }
+  async function onLogTerritory (territory, time, minutes) {
+    // COMMENT: If this ever fires, Wynncraft changed their wars
+    if (minutes === 'minute') {
+      console.error('A territory message was sent as a minute.')
+      return
+    }
+    if (minutes !== 'seconds' || minutes !== 'second') {
+      territoryTracker(territory, time)
+    }
+  }
   async function territoryTracker (territory, time) {
     // COMMENT: track guild territory
     const duration = time
@@ -484,6 +545,8 @@ function runBot (client) {
     })
   }
   async function logGuildMessageToDiscord (fullMessage, rank, username, message) {
+    // COMMENT: Use their real username if they are a Champion nick
+    if (realUsername !== null) username = realUsername
     const guildMessagePrefix = now + ' '
     const guildEmoji = config.guildEmoji ? config.guildEmoji : '🚩'
     let guildMessageSuffix
@@ -528,11 +591,12 @@ function runBot (client) {
     console.log(`${bomb} bomb logged`)
     const bombMessagePrefix = now + ''
     if (world === undefined || world === null) {
+      clearTimeout(hubTimer) // COMMENT: remove the timer if it is reported here
       // COMMENT: If world is somehow not defined, fallback to WC0 or WCA's current world
       world = currentWorld
-      bot.chat('/hub')
       console.log(`going to hub because bomb was thrown on ${world}`)
       client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.bombRestartMessage}`)
+      hub()
     }
     const bombMessageSuffix = `**${world}** by \`${username}\``
     const playerCount = listOnlinePlayers(world)
@@ -664,22 +728,18 @@ function runBot (client) {
     // COMMENT: Custom Shout Message Formatting
     client.guilds.cache.get(config.guildid).channels.cache.get(config.shoutChannel).send(now + ` [${world}] \`${username}\`: \`${shoutMessage}\``)
   }
-  async function online (username, world, wynnclass) {
+  async function logOnline (username, world, wynnclass) {
     // COMMENT: Online Tracker
     if (username !== bot.username) {
       return
     }
-    // COMMENT: Your now on a world
+    // COMMENT: Your now on a world - you have stopped loading resource pack lol
     onAWorld = true
+    resourcePackLoading = false
     // COMMENT: Set the currentWorld to the current World instead of WC0
     currentWorld = world
     client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.worldConnectMessage}`)
-    client.user.setPresence({
-      status: 'online',
-      activity: {
-        name: 'archiving chat - play.wynncraft.com'
-      }
-    })
+    discordStatus()
   }
   async function getTerritoryLocation (territoryName) {
     let territoryCoordinates
@@ -702,6 +762,11 @@ function runBot (client) {
       territoryCoordinates = `${terX}, ${terY}`
     }
     return territoryCoordinates
+  }
+  function hub () {
+    if (onAWorld === true && resourcePackLoading === false) {
+      bot.chat('/hub')
+    }
   }
   async function runDiscord (message) {
     // COMMENT: if message doesn't start with the prefix, message author is WCA, or message is not in the command channel
@@ -751,7 +816,7 @@ function runBot (client) {
           break
         }
         case 'hub': {
-          bot.chat('/hub')
+          hub()
           console.warn('going to hub...')
           message.channel.send('going to hub...')
           break
@@ -852,47 +917,6 @@ function runBot (client) {
       }
     }
   }
-  function compass () {
-    // COMMENT: If already on a world, loading the resource pack or is has been kicked from the server, then do nothing
-    if (onAWorld === true || onWynncraft === false || resourcePackLoading === true) {
-      return
-    }
-    console.log('compass check')
-    bot.setQuickBarSlot(0)
-    bot.updateHeldItem()
-    // COMMENT: assume that bot is slightly stuck if the held item is nothing
-    if (bot.heldItem === null || bot.heldItem === undefined) {
-      console.log(bot.heldItem)
-    } else {
-      const itemHeld = bot.heldItem.name
-      console.log(itemHeld)
-      // COMMENT: click on the recommended world if holding a compass
-      // TODO: maybe have it select a world with low player count and/or low uptime
-      // I want to minimize it taking up player slots in critical areas
-      setTimeout(() => {
-        const compassRetryMax = 3
-        if (itemHeld === 'compass') {
-          // COMMENT: retry on lobby or restart entire bot if hub is broken
-          compassRetry = compassRetry + 1
-          if (compassRetry >= compassRetryMax) {
-            // COMMENT: not tested yet - hopefully it works lol
-            console.error(`[${compassRetry}/${compassRetryMax}] Restarting bot because of too many attempts.`)
-            bot.emit('kicked', 'compass_retry')
-            compassRetryTimeout = setTimeout(() => {
-              loginBot()
-            }, 30000)
-          } else {
-            console.warn(`[${compassRetry}/${compassRetryMax}] Connecting to WC...`)
-            client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.worldReconnectMessage}`)
-            bot.activateItem()
-          }
-        }
-      }, 1000)
-    }
-    // if (itemHeld === 'bow' || itemHeld === 'wooden_shovel' || itemHeld === 'iron_shovel' || itemHeld === 'stone_shovel' || itemHeld === 'shears') {
-    //  bot.setQuickBarSlot(7)
-    // }
-  }
   // COMMENT: entire NPC function below is "interacting" with the world and may get it banned
   /*
   let npcInterval
@@ -942,47 +966,97 @@ function runBot (client) {
   } */
   function exitHandler () {
     bot.on('kicked', (reason, loggedIn) => {
-      // COMMENT: Shut all the bot things down when kicked or disconnected
-      onWynncraft = false
-      write() // COMMENT: write chat to the log file
-      // npc()
-      // bot.viewer.close() // COMMENT: remove this if you are not using prismarine-viewer
-      clearInterval(cancelCompass)
-      clearInterval(playerAPICheck)
-      // clearInterval(npcInterval)
-      console.error(reason, loggedIn)
-      client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
-      client.user.setStatus('dnd')
-      client.user.setPresence({
-        status: 'dnd',
-        activity: {
-          name: 'WCA is offline'
-        }
-      })
-      bot.quit()
+      onKick(reason, loggedIn)
     })
     bot.on('error', err => console.error(err))
   }
   process.once('SIGINT', () => {
+    onProcessStop()
+  })
+  process.once('SIGHUP', () => {
+    onProcessStop()
+  })
+  async function onKick (reason, loggedIn) {
+    // COMMENT: Shut all the bot things down when kicked or disconnected
+    onWynncraft = false
+    onAWorld = false
+    resourcePackLoading = false
+    discordStatus()
+    write() // COMMENT: write chat to the log file
+    // npc()
+    // bot.viewer.close() // COMMENT: remove this if you are not using prismarine-viewer
+    clearInterval(cancelCompass)
+    clearInterval(playerAPICheck)
+    // clearInterval(npcInterval)
+    console.error(reason, loggedIn)
+    if (reason !== 'end_process') {
+      client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
+    }
+    bot.quit()
+  }
+  async function onProcessStop () {
+    process.title = originalTitle
+    bot.emit('kicked', 'end_process')
+    setTimeout(() => {
+      console.error('Exiting process NOW')
+      process.exit()
+    }, 9000)
     // COMMENT: When exiting, do these things
     // bot.viewer.close() // COMMENT: remove this if you are not using prismarine-viewer
-    write()
-    bot.quit()
-    console.error('shutting down due to someone pushing ctrl+c')
+    console.error('Exiting process in 8 seconds.')
     client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.processEndMessage} <@!${config.masterDiscordUser}>`)
     client.user.setStatus('invisible')
-    setTimeout(() => {
-      process.exit()
-    }, 5000)
-  })
+  }
+  async function discordStatus (status) {
+    if (status === 'starting') {
+      client.user.setPresence({
+        status: 'idle',
+        activity: {
+          name: 'connecting to wynncraft'
+        }
+      })
+    } else {
+      if (onWynncraft === true && onAWorld === true && resourcePackLoading === false) {
+        client.user.setPresence({
+          status: 'online',
+          activity: {
+            name: 'archiving chat - play.wynncraft.com'
+          }
+        })
+      } else if (onWynncraft === true && onAWorld === false && resourcePackLoading === false) {
+        client.user.setPresence({
+          status: 'idle',
+          activity: {
+            name: 'in a lobby - play.wynncraft.com'
+          }
+        })
+      } else if (onWynncraft === true && onAWorld === false && resourcePackLoading === true) {
+        client.user.setPresence({
+          status: 'idle',
+          activity: {
+            name: 'in class menu - play.wynncraft.com'
+          }
+        })
+      } else if (onWynncraft === false && onAWorld === false && resourcePackLoading === false) {
+        client.user.setPresence({
+          status: 'dnd',
+          activity: {
+            name: `offline | type ${config.prefix}start to restart`
+          }
+        })
+      } else {
+        console.error(`Error when setting status: "onWynncraft": ${onWynncraft} | "onAWorld": ${onAWorld} | "resourcePackLoading": ${resourcePackLoading} `)
+      }
+    }
+  }
 }
-
 async function writeOnlinePlayers () {
   // COMMENT: send a request to the Wynncraft API and write it to onlinePlayers.json
+  /*
   NodeWynn
     .getOnline()
     .then((r) => {
-      const json = JSON.stringify(r)
+      const json = JSON.stringify(r, null, 2)
       fs.writeFile('./onlinePlayers.json', json, err => {
         if (err) {
           console.error(err)
@@ -991,16 +1065,29 @@ async function writeOnlinePlayers () {
     })
     .catch(err => {
       console.error(err)
+    }) */
+  // COMMENT: switched to sending the request to wynntils
+  axios.get('https://athena.wynntils.com/cache/get/serverList')
+    .then(r => {
+      const file = JSON.stringify(r.data, null, 2)
+      fs.writeFile('./onlinePlayers.json', file, err => {
+        if (err) {
+          console.error(err)
+        }
+      })
+    })
+    .catch(error => { //  Handle errors
+      console.log(error)
     })
 }
 function listOnlinePlayers (world) {
   // COMMENT: read onlinePlayers.json and return the playercount of the argument / world
   const parsed = JSON.parse(fs.readFileSync('./onlinePlayers.json', 'utf8'))
   let playerCountFromFile
-  if (!parsed[`${world}`]) {
+  if (!parsed.servers[`${world}`]) {
     playerCountFromFile = '-1'
   } else {
-    playerCountFromFile = Object.keys(parsed[`${world}`]).length
+    playerCountFromFile = Object.keys(parsed.servers[`${world}`].players).length
   }
   return playerCountFromFile
 }
@@ -1008,13 +1095,13 @@ function getRandomPlayer (world) {
   // COMMENT: read onlinePlayers.json and pick a random player
   const parsed = JSON.parse(fs.readFileSync('./onlinePlayers.json', 'utf8'))
   let randomPlayer
-  if (!parsed[`${world}`]) {
+  if (!parsed.servers[`${world}`]) {
     randomPlayer = 'null'
   } else {
     const start = 0
-    const end = parsed[`${world}`].length
+    const end = (parsed.servers[`${world}`].players).length
     const randomNumber = Math.floor((Math.random() * end) + start)
-    randomPlayer = parsed[`${world}`][randomNumber]
+    randomPlayer = parsed.servers[`${world}`].players[randomNumber]
   }
   return randomPlayer
 }
@@ -1025,7 +1112,7 @@ function writeBombStats (world, bomb) {
   const file = JSON.parse(fs.readFileSync('./WCStats.json', 'utf8'))
   console.log(world + ': ' + bomb)
   file[`${world}`][`${bomb}`] += 1
-  const writeFile = JSON.stringify(file)
+  const writeFile = JSON.stringify(file, null, 2)
   fs.writeFileSync('./WCStats.json', writeFile)
 }
 function getBombStats (world, stats) {
