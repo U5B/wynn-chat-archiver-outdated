@@ -158,7 +158,6 @@ function runBot (client) {
   let compassRetry
   let compassRetryTimeout
   let hubTimer
-  let test // COMMENT: placeholder
   // COMMENT: run this function whenever I recieve a discord message
   client.on('message', async message => {
     runDiscord(message)
@@ -784,6 +783,7 @@ function runBot (client) {
     }
     const args = message.content.slice(config.prefix.length).trim().split(/ +/)
     const command = args.shift().toLowerCase()
+    let bypassRole = false
     if (message.member.roles.cache.has(config.masterDiscordRole)) {
       // COMMENT: "Trusted Role Commands"
       // COMMENT: People with this role can use this command anywhere.
@@ -842,6 +842,7 @@ function runBot (client) {
       }
     }
     if (message.member.roles.cache.has(config.masterDiscordRole) || message.member.roles.cache.has(config.trustedDiscordRole)) {
+      bypassRole = true
       switch (command) {
         // COMMENT: "Truwusted Role Commands"
         // COMMENT: People with this role can use this command anywhere.
@@ -893,50 +894,50 @@ function runBot (client) {
         }
       }
     }
-    if (!message.channel.id === config.commandChannel) return
-    if (message.member.roles.cache.has(config.masterDiscordRole) || message.member.roles.cache.has(config.trustedDiscordRole)) {
-      switch (command) {
-        // COMMENT: Anyone can use these commands in the command channel
-        case 'null': {
-          message.channel.send(test)
-          break
+    if (bypassRole === false) {
+      if (message.channel.id !== config.commandChannel) return
+    }
+    switch (command) {
+      // COMMENT: Anyone can use these commands in the command channel
+      case 'null': {
+        message.channel.send('null')
+        break
+      }
+      case 'help': {
+        message.channel.send(
+        `\`\`\`Everyone:
+        null = returns null
+        help = returns this help message
+        random = returns a random player on that specific world
+        bomb = get bomb stats of a specific world\`\`\``
+        )
+        break
+      }
+      case 'random': {
+        if (!args.length) {
+          message.channel.send('Specify a world to fetch a random player')
+        } else if (args[0]) {
+          const argument = args[0]
+          const answer = getRandomPlayer(argument)
+          message.channel.send(`\`${answer}\``)
         }
-        case 'help': {
-          message.channel.send(
-          `\`\`\`Everyone:
-          null = returns null
-          help = returns this help message
-          random = returns a random player on that specific world
-          bomb = get bomb stats of a specific world\`\`\``
-          )
-          break
-        }
-        case 'random': {
-          if (!args.length) {
-            message.channel.send('Specify a world to fetch a random player')
-          } else if (args[0]) {
-            const argument = args[0]
-            const answer = getRandomPlayer(argument)
-            message.channel.send(`\`${answer}\``)
+        break
+      }
+      // COMMENT: uwu
+      case 'bomb': {
+        if (!args.length) {
+          message.channel.send('Specify a world for stats')
+        } else if (args[2]) {
+          message.channel.send(`Too many arguments, try ${config.prefix}bomb WC0 Combat_XP or ${config.prefix}bomb WC0`)
+        } else if (args[0]) {
+          const argument1 = args[0]
+          const argument2 = args[1]
+          const answer = getBombStats(argument1, argument2)
+          if (answer === null) {
+            message.channel.send('Internal error occured')
+            return
           }
-          break
-        }
-        // COMMENT: uwu
-        case 'bomb': {
-          if (!args.length) {
-            message.channel.send('Specify a world for stats')
-          } else if (args[2]) {
-            message.channel.send(`Too many arguments, try ${config.prefix}bomb WC0 Combat_XP or ${config.prefix}bomb WC0`)
-          } else if (args[0]) {
-            const argument1 = args[0]
-            const argument2 = args[1]
-            const answer = getBombStats(argument1, argument2)
-            if (answer === null) {
-              message.channel.send('Internal error occured')
-              return
-            }
-            message.channel.send(answer)
-          }
+          message.channel.send(answer)
         }
       }
     }
