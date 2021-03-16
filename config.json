@@ -23,6 +23,7 @@
 
     "masterDiscordUser": "000000000000000000",
     "masterDiscordRole": "000000000000000000",
+    "trustedDiscordRole": "000000000000000000",
     
     "prefix": "w!",
     "guildid": "000000000000000000",

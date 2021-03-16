@@ -9,7 +9,6 @@ const client = new discord.Client({ disableMentions: 'everyone' })
 
 // SECTION: File system and other logging
 const process = require('process')
-const originalTitle = process.title
 const util = require('util')
 const fs = require('fs')
 const path = require('path')
@@ -147,10 +146,11 @@ function runBot (client) {
   discordStatus('starting')
   // COMMENT: "global" variables
   let bot
-  let onWynncraft
-  let onAWorld
-  let currentWorld
-  let resourcePackLoading
+  let onWynncraft = false
+  let onAWorld = false
+  let currentWorld = 'WC0'
+  let resourcePackLoading = false
+  let resourcePackSendListener
   let realUsername
   // let nickUsername
   let playerAPICheck
@@ -165,11 +165,16 @@ function runBot (client) {
   })
   function loginBot () {
     // COMMENT: don't have two bots at once please
+    if (onWynncraft === true) {
+      console.error('Session already started. Kicking')
+      bot.emit('kicked', 'this_should_never_fire')
+    }
     clearTimeout(compassRetryTimeout)
     // COMMENT: get playercount of every world every 30 seconds
     writeOnlinePlayers()
     playerAPICheck = setInterval(async () => {
       writeOnlinePlayers()
+      discordStatus()
     }, 30000)
     // COMMENT: use config values if no arguments
     const version = config.version
@@ -183,7 +188,8 @@ function runBot (client) {
       port: port,
       username: user,
       password: pass,
-      viewDistance: 'tiny'
+      viewDistance: 'tiny',
+      checkTimeoutInterval: 60000
     })
     // bot.setMaxListeners(69) // COMMENT: until they fix world switching memory bug
     // COMMENT: load plugins
@@ -209,28 +215,28 @@ function runBot (client) {
       data = await getData()
       setInterval(write, 10000)
     })
-    bot.once('login', async () => {
+    bot.once('login', async function onceLoginListenerFunction () {
       onceLogin()
     })
-    bot.on('login', async () => {
+    bot.on('login', async function onLoginListenerFunction () {
       onLogin()
     })
-    bot.on('windowOpen', (window) => {
+    bot.on('windowOpen', async function onWindowOpenListenerFunction (window) {
       onWindowOpen(window)
     })
     // COMMENT: This is special regexes for logging and when I can't detect special chats via chatAddPattern
-    bot.on('message', async (message) => {
+    bot.on('message', async function onMessageListenerFunction (message) {
       onMessage(message)
     })
-    bot.on('bossBarUpdated', async (bossBar) => {
+    bot.on('bossBarUpdated', async function onBossBarUpdatedListenerFunction (bossBar) {
       onBossBarUpdated(bossBar)
     })
     // COMMENT: Normal chat is pretty much everything but actionbar messages
     bot.chatAddPattern(
       /^((?!.+ \d+\/\d+ {4}(?:.*) {4}. \d+\/\d+).+)$/,
-      'normal_chat'
+      'normalChat'
     )
-    bot.on('normal_chat', async (message) => {
+    bot.on('normalChat', async function onNormalChatListenerFunction (message) {
       onNormalChat(message)
     })
     // COMMENT: execute other things in everything
@@ -240,19 +246,19 @@ function runBot (client) {
     bot.chatAddPattern(
       // COMMENT: Bomb Bell tracking
       /^(\[Bomb Bell\] (.+) has thrown a (.+) Bomb on (WC\d+))$/,
-      'log_bomb'
+      'logBomb'
     )
     bot.chatAddPattern(
       // COMMENT: Poor man's Bomb tracking
       /^(\[(\w+) . (?:.+)\] (.+) on (WC\d+) )$/,
-      'log_bomb'
+      'logBomb'
     )
     bot.chatAddPattern(
       // COMMENT: Current Bomb tracking
       /^((\w+) has thrown a (.+) Bomb!.*)$/,
-      'log_bomb'
+      'logBomb'
     )
-    bot.on('log_bomb', async (message, username, bomb, world) => {
+    bot.on('logBomb', async function onLogBombListenerFunction (message, username, bomb, world) {
       onLogBomb(message, username, bomb, world)
     })
   }
@@ -261,17 +267,17 @@ function runBot (client) {
     bot.chatAddPattern(
       // COMMENT: Territory tracking
       /^\[WAR\] The war for (.+) will start in (\d+) (.+)\.$/,
-      'log_territory'
+      'logTerritory'
     )
     bot.chatAddPattern(
       // COMMENT: Guild Bank tracking
       /^\[INFO\] ((.+) (deposited|withdrew) (\d+x) (.+) (from|to) the Guild Bank \((.+)\))$/,
-      'log_guild_bank'
+      'logGuildBank'
     )
-    bot.on('log_territory', async (territory, time, minutes) => {
+    bot.on('logTerritory', async function onLogTerritoryListenerFunction (territory, time, minutes) {
       onLogTerritory(territory, time, minutes)
     })
-    bot.on('log_guild_bank', async (message, username, deposit, amount, item, fromto, rank) => {
+    bot.on('logGuildBank', async function onLogGuildBankListenerFunction (message, username, deposit, amount, item, fromto, rank) {
       // COMMENT: Guild
       logGuildBankToDiscord(message, username, deposit, amount, item, fromto, rank)
     })
@@ -281,9 +287,9 @@ function runBot (client) {
     bot.chatAddPattern(
       // COMMENT: Shout tracking
       /^((\w+) \[(WC\d+)\] shouts: (.+))$/,
-      'log_shout'
+      'logShout'
     )
-    bot.on('log_shout', async (message, username, world, shoutMessage) => {
+    bot.on('logShout', async function onLogShoutListenerFunction (message, username, world, shoutMessage) {
       // COMMENT: Shouts
       logShoutToDiscord(message, username, world, shoutMessage)
     })
@@ -305,7 +311,7 @@ function runBot (client) {
     // COMMENT: clear any compass checks
     // COMMENT: fallback to WC0 until the world is online
     currentWorld = 'WC0'
-    discordStatus()
+    discordStatus() // COMMENT: check discord status
     console.warn('Connected.')
     // COMMENT: Wait for the chunks to load before checking
     bot.waitForChunksToLoad(() => {
@@ -321,7 +327,7 @@ function runBot (client) {
   }
   function compass () {
     // COMMENT: If already on a world, loading the resource pack or is has been kicked from the server, then do nothing
-    if (onAWorld === true && onWynncraft === false && resourcePackLoading === true) {
+    if (onAWorld === true || onWynncraft === false || resourcePackLoading === true) {
       return
     }
     console.log('compass check')
@@ -428,12 +434,13 @@ function runBot (client) {
   }
   async function onNormalChat (message) {
     if (message === 'Loading Resource Pack...') {
+      if (resourcePackSendListener) bot.removeListener('resource_pack_send', resourcePackSendListener)
       clearInterval(cancelCompass)
       resourcePackLoading = true
       compassRetry = 0
-      discordStatus()
+      discordStatus() // COMMENT: check discord status
       // COMMENT: Accept the resource pack on login: Thanks mat#6207 for giving the code
-      bot._client.once('resource_pack_send', () => {
+      resourcePackSendListener = function onceResourcePackSendListenerFunction () {
         bot._client.write('resource_pack_receive', {
           result: 3
         })
@@ -441,7 +448,9 @@ function runBot (client) {
           result: 0
         })
         console.log('Wynnpack accepted.')
-      })
+        resourcePackLoading = false
+      }
+      bot._client.once('resource_pack_send', resourcePackSendListener)
     }
     if (message === 'Server restarting!' || message === 'The server you were on previously has went down. You have been connected to a fallback server') {
       client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.hubRestartMessage} <@!${config.masterDiscordUser}>`)
@@ -610,7 +619,7 @@ function runBot (client) {
       } else {
         bombTime = timeLeft
       }
-      const bombRole = config.combatXPRole ? config.combatXPRole : ' '
+      const bombRole = config.combatXPRole ? config.combatXPRole : '[Combat XP]'
       const bombEmoji = config.combatXPEmoji ? config.CombatXPEmoji : '▶️'
       const bombChannel = config.combatXPChannel ? config.combatXPChannel : config.bombChannel
       const sentBombMessage = `${bombMessagePrefix} ${bombEmoji} <@&${bombRole}> ${bombMessageSuffix}`
@@ -628,7 +637,7 @@ function runBot (client) {
       } else {
         bombTime = timeLeft
       }
-      const bombRole = config.dungeonRole ? config.dungeonRole : ' '
+      const bombRole = config.dungeonRole ? config.dungeonRole : '[Dungeon]'
       const bombEmoji = config.dungeonEmoji ? config.dungeonEmoji : '▶️'
       const bombChannel = config.dungeonChannel ? config.dungeonChannel : config.bombChannel
       const sentBombMessage = `${bombMessagePrefix} ${bombEmoji} <@&${bombRole}> ${bombMessageSuffix}`
@@ -645,7 +654,7 @@ function runBot (client) {
       } else {
         bombTime = timeLeft
       }
-      const bombRole = config.lootRole ? config.lootRole : ' '
+      const bombRole = config.lootRole ? config.lootRole : '[Loot]'
       const bombEmoji = config.lootEmoji ? config.lootEmoji : '▶️'
       const bombChannel = config.lootChannel ? config.lootChannel : config.bombChannel
       const sentBombMessage = `${bombMessagePrefix} ${bombEmoji} <@&${bombRole}> ${bombMessageSuffix}`
@@ -662,7 +671,7 @@ function runBot (client) {
       } else {
         bombTime = timeLeft
       }
-      const bombRole = config.professionSpeedRole ? config.professionSpeedRole : ' '
+      const bombRole = config.professionSpeedRole ? config.professionSpeedRole : '[Profession Speed]'
       const bombEmoji = config.professionSpeedEmoji ? config.professionSpeedEmoji : '▶️'
       const bombChannel = config.professionSpeedChannel ? config.professionSpeedChannel : config.bombChannel
       const sentBombMessage = `${bombMessagePrefix} ${bombEmoji} <@&${bombRole}> ${bombMessageSuffix}`
@@ -679,7 +688,7 @@ function runBot (client) {
       } else {
         bombTime = timeLeft
       }
-      const bombRole = config.professionXPRole ? config.professionXPRole : ' '
+      const bombRole = config.professionXPRole ? config.professionXPRole : '[Profession XP]'
       const bombEmoji = config.professionXPEmoji ? config.professionXPEmoji : '▶️'
       const bombChannel = config.professionXPChannel ? config.professionXPChannel : config.bombChannel
       const sentBombMessage = `${bombMessagePrefix} ${bombEmoji} <@&${bombRole}> ${bombMessageSuffix}`
@@ -739,7 +748,7 @@ function runBot (client) {
     // COMMENT: Set the currentWorld to the current World instead of WC0
     currentWorld = world
     client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.worldConnectMessage}`)
-    discordStatus()
+    discordStatus() // COMMENT: check discord status
   }
   async function getTerritoryLocation (territoryName) {
     let territoryCoordinates
@@ -769,50 +778,92 @@ function runBot (client) {
     }
   }
   async function runDiscord (message) {
-    // COMMENT: if message doesn't start with the prefix, message author is WCA, or message is not in the command channel
-    if (!message.content.startsWith(config.prefix) || message.author.bot || !message.channel.id === config.commandChannel) {
+    // COMMENT: if message doesn't start with the prefix, message author is WCA
+    if (!message.content.startsWith(config.prefix) || message.author.bot) {
       return
     }
     const args = message.content.slice(config.prefix.length).trim().split(/ +/)
     const command = args.shift().toLowerCase()
     if (message.member.roles.cache.has(config.masterDiscordRole)) {
       // COMMENT: "Trusted Role Commands"
+      // COMMENT: People with this role can use this command anywhere.
       switch (command) {
         case 'help': {
           message.channel.send(
           `\`\`\`Trusted:
-          start = starts the WCA
           stop = stops the WCA
           exit = panic command to stop everything
+          sudo = sudo the bot to do something in chat / make sure you put a slash before any commands
+          tps = get current tps on world\`\`\``
+          )
+          break
+        }
+        case 'stop': {
+          if (onWynncraft === false) {
+            message.channel.send(`Already offline, type ${config.prefix}start to connect tp Wynncraft.`)
+            return
+          }
+          bot.emit('kicked', 'discord')
+          console.warn(`WCA has quit game due to ${config.prefix}stop from discord`)
+          message.channel.send(`WCA has quit game due to discord - type ${config.prefix}start to start it`)
+          client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.stopWCA}`)
+          break
+        }
+        case 'exit': {
+          console.warn('exiting via discord uwu')
+          message.channel.send('exiting bot process')
+          process.emit('SIGINT')
+          break
+        }
+        case 'sudo': {
+          const sudoMessage = args.join(' ')
+          console.warn(`executed "${sudoMessage}"`)
+          bot.chat(sudoMessage)
+          message.channel.send(`executed \`${sudoMessage}\``)
+          break
+        }
+        case 'tps': {
+          const tps = bot.getTps()
+          message.channel.send(`[${currentWorld}] TPS: ${tps}`)
+          break
+        }
+        /* case 'npc': {
+          // COMMENT: entire NPC function interacts with the world and might be bannable
+          if (!args.length) {
+            message.channel.send('reset npc intervals')
+            npc()
+          } else if (args[0]) {
+            const argument = args[0]
+            npc(argument)
+            message.channel.send(`staring at ${argument}`)
+          }
+          break
+        } */
+      }
+    }
+    if (message.member.roles.cache.has(config.masterDiscordRole) || message.member.roles.cache.has(config.trustedDiscordRole)) {
+      switch (command) {
+        // COMMENT: "Truwusted Role Commands"
+        // COMMENT: People with this role can use this command anywhere.
+        case 'help': {
+          message.channel.send(
+          `\`\`\`Truwusted:
+          start = starts the WCA
           hub = go to hub and join a new world
           compass = force compass check
-          sudo = sudo the bot to do something in chat / make sure you put a slash before any commands
-          npc = function that makes the WCA look at the specific player in range / disabled
-          tps = get current tps on world
-          stats = get stats of world\`\`\``
+          stream = toggle stream mode\`\`\``
           )
           break
         }
         case 'start': {
           if (onWynncraft === true) {
-            message.channel.send('Already online, type -stop to quit Wynncraft.')
+            message.channel.send(`Already online, type ${config.prefix}stop to quit Wynncraft.`)
             return
           }
           loginBot()
-          console.warn('WCA has joined game - due to -start ')
+          console.warn(`WCA has joined game - due to ${config.prefix}start from Discord.`)
           message.channel.send('starting WCA')
           client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.startWCA}`)
-          break
-        }
-        case 'stop': {
-          if (onWynncraft === false) {
-            message.channel.send('Already offline, type -start to connect tp Wynncraft.')
-            return
-          }
-          bot.emit('kicked', 'discord')
-          console.warn('WCA has quit game due to -stop from discord')
-          message.channel.send('WCA has quit game due to discord - type -start to start it')
-          client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.stopWCA}`)
           break
         }
         case 'hub': {
@@ -835,84 +886,57 @@ function runBot (client) {
           message.channel.send('executing compass script')
           break
         }
-        case 'exit': {
-          console.warn('exiting via discord uwu')
-          message.channel.send('exiting bot process')
-          process.emit('SIGINT')
-          break
-        }
-        case 'sudo': {
-          const sudoMessage = args.join(' ')
-          console.warn(`executed "${sudoMessage}"`)
-          bot.chat(sudoMessage)
-          message.channel.send(`executed \`${sudoMessage}\``)
-          break
-        }
-        /* case 'npc': {
-          // COMMENT: entire NPC function interacts with the world and might be bannable
-          if (!args.length) {
-            message.channel.send('reset npc intervals')
-            npc()
-          } else if (args[0]) {
-            const argument = args[0]
-            npc(argument)
-            message.channel.send(`staring at ${argument}`)
-          }
-          break
-        } */
-        case 'tps': {
-          const tps = bot.getTps()
-          message.channel.send(`[${currentWorld}] TPS: ${tps}`)
+        case 'stream': {
+          bot.chat('/stream')
+          message.channel.send('Toggled stream mode.')
           break
         }
       }
     }
-    switch (command) {
-      // COMMENT: Anyone can use these commands
-      case 'null': {
-        message.channel.send(test)
-        break
-      }
-      case 'help': {
-        message.channel.send(
-        `\`\`\`null = returns null
-        help = returns this help message
-        random = returns a random player on that specific world
-        stream = toggle stream mode
-        bomb = get bomb stats of a specific world\`\`\``
-        )
-        break
-      }
-      case 'random': {
-        if (!args.length) {
-          message.channel.send('Specify a world to fetch a random player')
-        } else if (args[0]) {
-          const argument = args[0]
-          const answer = getRandomPlayer(argument)
-          message.channel.send(`\`${answer}\``)
+    if (!message.channel.id === config.commandChannel) return
+    if (message.member.roles.cache.has(config.masterDiscordRole) || message.member.roles.cache.has(config.trustedDiscordRole)) {
+      switch (command) {
+        // COMMENT: Anyone can use these commands in the command channel
+        case 'null': {
+          message.channel.send(test)
+          break
         }
-        break
-      }
-      case 'stream': {
-        bot.chat('/stream')
-        message.channel.send('Toggled stream mode.')
-        break
-      }
-      // COMMENT: uwu
-      case 'bomb': {
-        if (!args.length) {
-          message.channel.send('Specify a world for stats')
-        } else if (args[2]) {
-          message.channel.send('Too many arguments, try w@bomb WC0 Combat_XP or w@bomb WC0')
-        } else if (args[0]) {
-          const argument1 = args[0]
-          const argument2 = args[1]
-          const answer = getBombStats(argument1, argument2)
-          if (answer === null) {
-            message.channel.send('Internal error occured')
-            return
+        case 'help': {
+          message.channel.send(
+          `\`\`\`Everyone:
+          null = returns null
+          help = returns this help message
+          random = returns a random player on that specific world
+          bomb = get bomb stats of a specific world\`\`\``
+          )
+          break
+        }
+        case 'random': {
+          if (!args.length) {
+            message.channel.send('Specify a world to fetch a random player')
+          } else if (args[0]) {
+            const argument = args[0]
+            const answer = getRandomPlayer(argument)
+            message.channel.send(`\`${answer}\``)
           }
-          message.channel.send(answer)
+          break
+        }
+        // COMMENT: uwu
+        case 'bomb': {
+          if (!args.length) {
+            message.channel.send('Specify a world for stats')
+          } else if (args[2]) {
+            message.channel.send(`Too many arguments, try ${config.prefix}bomb WC0 Combat_XP or ${config.prefix}bomb WC0`)
+          } else if (args[0]) {
+            const argument1 = args[0]
+            const argument2 = args[1]
+            const answer = getBombStats(argument1, argument2)
+            if (answer === null) {
+              message.channel.send('Internal error occured')
+              return
+            }
+            message.channel.send(answer)
+          }
         }
       }
     }
@@ -965,15 +989,21 @@ function runBot (client) {
     }
   } */
   function exitHandler () {
-    bot.on('kicked', (reason, loggedIn) => {
+    bot.on('kicked', function onKickedFunctionListener (reason, loggedIn) {
       onKick(reason, loggedIn)
     })
-    bot.on('error', err => console.error(err))
+    bot.on('end', function onEndFunctionListener () {
+      onKick('end_bot')
+    })
+    bot.on('error', async function onErrorFunctionListener (err) { console.error(err) })
   }
-  process.once('SIGINT', () => {
+  process.once('SIGINT', function endSIGINT () {
     onProcessStop()
   })
-  process.once('SIGHUP', () => {
+  process.once('SIGHUP', function endSIGHUP () {
+    onProcessStop()
+  })
+  process.once('SIGTERM', function endSIGTERM () {
     onProcessStop()
   })
   async function onKick (reason, loggedIn) {
@@ -981,7 +1011,7 @@ function runBot (client) {
     onWynncraft = false
     onAWorld = false
     resourcePackLoading = false
-    discordStatus()
+    discordStatus() // COMMENT: check discord status // COMMENT: check discord status
     write() // COMMENT: write chat to the log file
     // npc()
     // bot.viewer.close() // COMMENT: remove this if you are not using prismarine-viewer
@@ -989,13 +1019,17 @@ function runBot (client) {
     clearInterval(playerAPICheck)
     // clearInterval(npcInterval)
     console.error(reason, loggedIn)
-    if (reason !== 'end_process') {
+    if (reason === 'end_process') {
+      return
+    } else if (reason === 'end_bot') {
+      reason = 'Disconnected (Network?)'
+      client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
+    } else {
       client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
     }
     bot.quit()
   }
   async function onProcessStop () {
-    process.title = originalTitle
     bot.emit('kicked', 'end_process')
     setTimeout(() => {
       console.error('Exiting process NOW')
