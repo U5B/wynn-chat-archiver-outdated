@@ -16,7 +16,7 @@ const axios = require('axios')
 
 // SECTION: Timers
 const Timer = require('easytimer.js').Timer
-const { setInterval } = require('timers')
+const { setInterval, setTimeout } = require('timers')
 
 // SECTION: all of the configs I need and wynncraft api
 const config = require('./config.json')
@@ -150,13 +150,12 @@ function runBot (client) {
   let onAWorld = false
   let currentWorld = 'WC0'
   let resourcePackLoading = false
+  let compassCheck = false
   let resourcePackSendListener
   let realUsername
   // let nickUsername
   let playerAPICheck
   let cancelCompass
-  let compassRetry
-  let compassRetryTimeout
   let hubTimer
   // COMMENT: run this function whenever I recieve a discord message
   client.on('message', async message => {
@@ -168,7 +167,6 @@ function runBot (client) {
       console.error('Session already started. Kicking')
       bot.emit('kicked', 'this_should_never_fire')
     }
-    clearTimeout(compassRetryTimeout)
     // COMMENT: get playercount of every world every 30 seconds
     writeOnlinePlayers()
     playerAPICheck = setInterval(async () => {
@@ -188,6 +186,7 @@ function runBot (client) {
       username: user,
       password: pass,
       viewDistance: 'tiny',
+      hideErrors: false,
       checkTimeoutInterval: 60000
     })
     // bot.setMaxListeners(69) // COMMENT: until they fix world switching memory bug
@@ -296,7 +295,6 @@ function runBot (client) {
   // SECTION: behind the scenes functions that need to go into their own files
   async function onceLogin () {
     console.warn('Connected to Wynncraft.')
-    compassRetry = 0
     // COMMENT: onWynncraft is set to true on startup
     onWynncraft = true
     client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(nowDate + `${config.firstConnectMessage}`)
@@ -313,16 +311,14 @@ function runBot (client) {
     discordStatus() // COMMENT: check discord status
     console.warn('Connected.')
     // COMMENT: Wait for the chunks to load before checking
-    bot.waitForChunksToLoad(() => {
+    await bot.waitForChunksToLoad()
+    if (compassCheck === true) {
+      setTimeout(() => {
+        compass()
+      }, 5000)
+    } else {
       compass()
-      cancelCompass = setInterval(async () => {
-        // COMMENT: if WCA failed first check and is still in the hub, run the check again for good measure
-        // COMMENT: only do this check if you know for sure you are in the hub
-        if (onAWorld === false && onWynncraft === true && resourcePackLoading === false) {
-          compass()
-        }
-      }, 60000)
-    })
+    }
   }
   function compass () {
     // COMMENT: If already on a world, loading the resource pack or is has been kicked from the server, then do nothing
@@ -333,45 +329,43 @@ function runBot (client) {
     bot.setQuickBarSlot(0)
     bot.updateHeldItem()
     // COMMENT: assume that bot is slightly stuck if the held item is nothing
-    if (bot.heldItem === null || bot.heldItem === undefined) {
-      console.log(bot.heldItem)
-    } else {
-      const itemHeld = bot.heldItem.name
-      console.log(itemHeld)
-      // COMMENT: click on the recommended world if holding a compass
-      // TODO: maybe have it select a world with low player count and/or low uptime
-      // I want to minimize it taking up player slots in critical areas
-      setTimeout(() => {
-        const compassRetryMax = 3
+    setTimeout(() => {
+      if (bot.heldItem === null || bot.heldItem === undefined) {
+        console.log(bot.heldItem)
+      } else {
+        const itemHeld = bot.heldItem.name
+        console.log(itemHeld)
+        // COMMENT: click on the recommended world if holding a compass
+        // TODO: maybe have it select a world with low player count and/or low uptime
+        // I want to minimize it taking up player slots in critical areas
+        function compassActivate () {
+          console.warn('Connecting to WC...')
+          client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.worldReconnectMessage}`)
+          bot.activateItem()
+        }
         if (itemHeld === 'compass') {
           // COMMENT: retry on lobby or restart entire bot if hub is broken
-          compassRetry = compassRetry + 1
-          if (compassRetry >= compassRetryMax) {
-            // COMMENT: not tested yet - hopefully it works lol
-            console.error(`[${compassRetry}/${compassRetryMax}] Restarting bot because of too many attempts.`)
-            bot.emit('kicked', 'compass_retry')
-            compassRetryTimeout = setTimeout(() => {
-              loginBot()
-            }, 30000)
-          } else {
-            console.warn(`[${compassRetry}/${compassRetryMax}] Connecting to WC...`)
-            client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.worldReconnectMessage}`)
-            bot.activateItem()
-          }
+          compassActivate()
+          cancelCompass = setInterval(() => {
+            if (onWynncraft === true && onAWorld === false && resourcePackLoading === false) {
+              compassActivate()
+            }
+          }, 15000)
         }
-      }, 1000)
-    }
+      }
+    }, 1000)
     // if (itemHeld === 'bow' || itemHeld === 'wooden_shovel' || itemHeld === 'iron_shovel' || itemHeld === 'stone_shovel' || itemHeld === 'shears') {
     //  bot.setQuickBarSlot(7)
     // }
   }
   async function onWindowOpen (window) {
+    window.requiresConfirmation = false
     // COMMENT: this is used so that I can technically support any gui in one section of my code
     const win = JSON.parse(window.title)
     if (win.text === 'Wynncraft Servers') {
       // COMMENT: Hardcoded to click on the recommended server slot - might need to be changed if Wynncraft updates their gui
-      bot.clickWindow(13, 0, 0)
-      bot.closeWindow(window)
+      await bot.clickWindow(13, 0, 0)
+      compassCheck = true
     } else if (win.text === '§8§lSelect a Class') {
       console.error(`somehow in class menu "${win.text}" going to hub - use /toggle autojoin`)
       bot.closeWindow(window)
@@ -432,11 +426,15 @@ function runBot (client) {
     }
   }
   async function onNormalChat (message) {
+    if (message === 'You\'re rejoining too quickly! Give us a moment to save your data.' || message === 'You are already connected to this server!') {
+      compassCheck = true
+    }
     if (message === 'Loading Resource Pack...') {
+      console.warn('Connected and Loading Resource Pack...')
+      compassCheck = false
+      resourcePackLoading = true
       if (resourcePackSendListener) bot.removeListener('resource_pack_send', resourcePackSendListener)
       clearInterval(cancelCompass)
-      resourcePackLoading = true
-      compassRetry = 0
       discordStatus() // COMMENT: check discord status
       // COMMENT: Accept the resource pack on login: Thanks mat#6207 for giving the code
       resourcePackSendListener = function onceResourcePackSendListenerFunction () {
@@ -458,10 +456,10 @@ function runBot (client) {
     if (bombRegex.test(message)) {
       // COMMENT: get off the server if an bomb is thrown - some people do item bomb parties
       hubTimer = setTimeout(() => {
-        console.log(`going to hub because item bomb was thrown on ${currentWorld}`)
-        client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.bombRestartMessage}`)
+        console.log(`going to hub because bomb was thrown on ${currentWorld}`)
+        client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.bombRestartMessage} <@!${config.masterDiscordUser}>`)
         hub()
-      }, 3000)
+      }, 2000)
     }
     const botJoinRegex = /(\w+) has logged into server (\w+) as (?:a|an) (.+)/
     if (botJoinRegex.test(message)) {
@@ -478,6 +476,9 @@ function runBot (client) {
     const bombBarRegex = /(.+) from (.+) \[(\d+) min\]/
     const bossBarString = stripthes(bossBar.title.text)
     if (bombBarRegex.test(bossBarString)) {
+      clearTimeout(hubTimer)
+      console.log(`going to hub because bomb was thrown on ${currentWorld}`)
+      client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.bombRestartMessage} <@!${config.masterDiscordUser}>`)
       hub()
     }
   }
@@ -492,9 +493,7 @@ function runBot (client) {
       logBombToDiscord(message, randomPlayer, bomb, world, timeLeft)
     } else {
       // COMMENT: Santize input so that other people can't execute it via DMs
-      if (santitze.test(santitzeMessage)) {
-        return
-      }
+      if (santitze.test(santitzeMessage)) return
       logBombToDiscord(message, username, bomb, world, timeLeft)
     }
   }
@@ -989,11 +988,13 @@ function runBot (client) {
       npcInterval = setInterval(lookAtPlayer, 50)
     }
   } */
+  let endProcess = false
   function exitHandler () {
     bot.on('kicked', function onKickedFunctionListener (reason, loggedIn) {
       onKick(reason, loggedIn)
     })
     bot.on('end', function onEndFunctionListener () {
+      if (endProcess === true) return
       onKick('end_bot')
     })
     bot.on('error', async function onErrorFunctionListener (err) { console.error(err) })
@@ -1021,24 +1022,26 @@ function runBot (client) {
     // clearInterval(npcInterval)
     console.error(reason, loggedIn)
     if (reason === 'end_process') {
+      endProcess = true
+      bot.quit()
       return
-    } else if (reason === 'end_bot') {
-      reason = 'Disconnected (Network?)'
+    }
+    if (reason === 'end_bot') {
+      reason = 'Disconnected'
       client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
     } else {
       client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
     }
-    bot.quit()
   }
   async function onProcessStop () {
-    bot.emit('kicked', 'end_process')
+    onKick('end_process')
     setTimeout(() => {
       console.error('Exiting process NOW')
       process.exit()
     }, 9000)
     // COMMENT: When exiting, do these things
     // bot.viewer.close() // COMMENT: remove this if you are not using prismarine-viewer
-    console.error('Exiting process in 8 seconds.')
+    console.error('Exiting process in 9 seconds.')
     client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.processEndMessage} <@!${config.masterDiscordUser}>`)
     client.user.setStatus('invisible')
   }
