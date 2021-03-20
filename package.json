@@ -1,5 +1,5 @@
 {
-  "name": "wca-github",
+  "name": "wynn-chat-archive-dev",
   "version": "1.0.0",
   "description": "Wynncraft chat archiver. Archives wynncraft chat. Not finshed at all",
   "main": "runBot.js",
@@ -10,19 +10,11 @@
   "license": "MIT",
   "dependencies": {
     "chalk": "^4.1.0",
+    "debug": "^4.3.1",
     "discord.js": "^12.5.1",
-    "easytimer.js": "^4.3.2",
-    "mineflayer": "^3.3.0",
+    "easytimer.js": "^4.3.4",
+    "mineflayer": "^3.3.3",
     "mineflayer-tps": "^1.0.1",
     "node-wynn": "^1.2.0"
-  },
-  "devDependencies": {},
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/U5B/WCA.git"
-  },
-  "bugs": {
-    "url": "https://github.com/U5B/WCA/issues"
-  },
-  "homepage": "https://github.com/U5B/WCA#readme"
+  }
 }

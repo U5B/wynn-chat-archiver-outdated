@@ -1,3 +1,4 @@
+process.env.DEBUG = 'DEBUG,CHAT,INFO,ERROR,WARN,VERBOSE,LOG'
 // SECTION: Mineflayer modules
 const mineflayer = require('mineflayer')
 // const mineflayerViewer = require('prismarine-viewer').mineflayer
@@ -8,11 +9,21 @@ const discord = require('discord.js')
 const client = new discord.Client({ disableMentions: 'everyone' })
 
 // SECTION: File system and other logging
-const process = require('process')
+// const process = require('process')
 const util = require('util')
 const fs = require('fs')
 const path = require('path')
 const axios = require('axios')
+
+const debug = {
+  debug: require('debug')('DEBUG'),
+  chat: require('debug')('CHAT'),
+  info: require('debug')('INFO'),
+  error: require('debug')('ERROR'),
+  warn: require('debug')('WARN'),
+  verbose: require('debug')('VERBOSE'),
+  log: require('debug')('LOG')
+}
 
 // SECTION: Timers
 const Timer = require('easytimer.js').Timer
@@ -33,111 +44,102 @@ const warns = chalk.bold.yellow
 
 // COMMENT: Minecraft Colors to ANSI list
 const colors = { 0: '\u001b[0;30m', 1: '\u001b[0;34m', 2: '\u001b[0;32m', 3: '\u001b[0;36m', 4: '\u001b[0;31m', 5: '\u001b[0;35m', 6: '\u001b[0;33m', 7: '\u001b[0;37m', 8: '\u001b[1;30m', 9: '\u001b[1;34m', a: '\u001b[1;32m', b: '\u001b[1;36m', c: '\u001b[1;31m', d: '\u001b[1;35m', e: '\u001b[1;33m', f: '\u001b[1;37m', l: '\u001b[1m', r: '\u001b[0m', m: '\u001b[4m', n: '\u001b[4m', o: '\u001b[3m', k: '\u001b[5m' }
-
-// COMMENT: This is used to add resets to the beginning and ends of messages
-function r (msg) {
-  return '§r' + msg + '§r'
-}
-// COMMENT: colorize your message, but not used since chalk exists
-/*
-function c (c, msg) {
-  return '§r' + '§' + c + msg + '§r'
-}
-*/
-// COMMENT: MInecraft Colors to ANSI function
+// COMMENT: convert Minecraft colors to ANSI
 function mccolor (str) {
   return str.replace(/§([0-9a-z])/g, function (m, contents) {
     return colors[contents] || '\u001b[0m'
   })
 }
-// COMMENT: strip all ansi in text
-/*
-function stripansi (str) {
-  return str.replace(/\[\d+\w/g, '')
-}
-*/
-// COMMENT: strip all color code in text
-function stripthes (str) {
-  return str.replace(/§(?:[0-9a-z])/g, '')
-}
-// SECTION: end color functions
+// COMMENT: This is used to add color to messages - unused due to chalk
+// function c (c, msg) { return '§r' + '§' + c + msg + '§r' }
+// COMMENT: This is used to add resets to the beginning and ends of messages
+function r (msg) { return '§r' + msg + '§r' }
+// COMMENT: strip all ansi or color codes
+// function stripansi (str) { return str.replace(/\[\d+\w/g, '') }
+function stripthes (str) { return str.replace(/§(?:[0-9a-z])/g, '') }
+
+// SECTION: end color functions | begin time
 let nowDate = `[${new Date(Date.now()).toLocaleString('en-US')}]`
 let now = `[${new Date(Date.now()).toLocaleTimeString('en-US')}]`
 setInterval(() => {
   nowDate = `[${new Date(Date.now()).toLocaleString('en-US')}]`
   now = `[${new Date(Date.now()).toLocaleTimeString('en-US')}]`
 }, 1000)
-
 // SECTION: begin logging
-const fileName = path.join('logs', `chat-${new Date(Date.now()).toLocaleDateString().replace(/\//g, '_')}.json`)
+const chatFile = path.join('logs', `chat-${new Date(Date.now()).toLocaleDateString().replace(/\//g, '_')}.json`)
 let data = {}
-function logging () {
-  // COMMENT: handle rejections here I guess
-  process.on('unhandledRejection', (reason, promise) => {
-    console.error(`Unhandled Rejection at: "${promise}"`)
-    console.error(`Reason: "${reason}"`)
-    // Application specific logging, throwing an error, or other logic here
-  })
-  // COMMENT: all of the writestreams are located here
-  const ls = fs.createWriteStream(`./logs/log-${new Date(Date.now()).toLocaleDateString().replace(/\//g, '_')}.txt`, { flags: 'a' }) // COMMENT: just unformatted chat messages
-  const ds = fs.createWriteStream(`./logs/debug/debug-${new Date(Date.now()).toLocaleDateString().replace(/\//g, '_')}.txt`, { flags: 'a' }) // COMMENT: formatted chat messages and debug
-
-  // COMMENT: This logging was used with the mineflayer-dashboard logger, however I don't use the dashboard anymore
-  console.log = function () {
+const ls = fs.createWriteStream(`./logs/log-${new Date(Date.now()).toLocaleDateString().replace(/\//g, '_')}.txt`, { flags: 'a' }) // COMMENT: just unformatted chat messages
+const ds = fs.createWriteStream(`./logs/debug/debug-${new Date(Date.now()).toLocaleDateString().replace(/\//g, '_')}.txt`, { flags: 'a' }) // COMMENT: formatted chat messages and debug
+const log = {
+  chat () {
     const text = util.format.apply(this, arguments) + '\n'
+    const chat = util.format.apply(this, arguments)
+    // COMMENT: info is used for chat messages
+    ds.write(nowDate + ' [CHAT] ' + text) // COMMENT: write to log formatted
+    ls.write(nowDate + ' [CHAT] ' + stripthes(text)) // COMMENT: write to log unformatted
+    debug.chat(nowDate + ' ' + mccolor(r(chat)))
+    // process.stdout.write(nowDate + ' [CHAT] ' + mccolor(r(text)))
+    // COMMENT: this code from U9G
+    if (chat.trim() === '') return
+    const index = new Date(Date.now()).toLocaleString()
+    data[index] = stripthes(chat)
+  },
+  log () {
+    const text = util.format.apply(this, arguments) + '\n'
+    const chat = util.format.apply(this, arguments)
     ds.write(nowDate + ' [LOG] ' + text) // COMMENT: write to log formatted
     if (config.debug === true) {
       ls.write(nowDate + ' [LOG] ' + stripthes(text)) // COMMENT: write to log unformatted
-      process.stdout.write(nowDate + ' [LOG] ' + text)
+      debug.log(nowDate + ' ' + chat)
+      // process.stdout.write(nowDate + ' [LOG] ' + text)
     }
-  }
-  console.warn = function () {
-    const text = util.format.apply(this, arguments) + '\n'
-    ds.write(nowDate + ' [WARN] ' + text) // COMMENT: write to log formatted
-    ls.write(nowDate + ' [WARN] ' + stripthes(text)) // COMMENT: write to log unformatted
-    process.stdout.write(nowDate + ` ${warns('[WARN]')} ` + warns(text))
-  }
-  console.error = function () {
-    const text = util.format.apply(this, arguments) + '\n'
-    ds.write(nowDate + ' [ERR] ' + text) // COMMENT: write to log formatted
-    ls.write(nowDate + ' [ERR] ' + stripthes(text)) // COMMENT: write to log unformatted
-    process.stdout.write(nowDate + ` ${errors('[ERR]')} ` + errors(text))
-  }
-  console.debug = function () {
-    const text = util.format.apply(this, arguments) + '\n'
-    ds.write(nowDate + ' [DBUG] ' + text) // COMMENT: write to log formatted
-    if (config.debug === true) {
-      process.stdout.write(nowDate + ' [DEBUG] ' + text)
-    }
-  }
-  // COMMENT: info is used for chat messages
-  console.info = function () {
+  },
+  warn () {
     const text = util.format.apply(this, arguments) + '\n'
     const chat = util.format.apply(this, arguments)
-    ds.write(nowDate + ' [CHAT] ' + text) // COMMENT: write to log formatted
-    ls.write(nowDate + ' [CHAT] ' + stripthes(text)) // COMMENT: write to log unformatted
-    process.stdout.write(nowDate + ' [CHAT] ' + mccolor(r(text)))
-    // COMMENT: log chat with timestamp
-    // COMMENT: code from U9G
-    if (text.trim() === '') return
-    const index = new Date(Date.now()).toLocaleString()
-    data[index] = stripthes(chat)
-  }
-  console.verbose = function () {
+    ds.write(nowDate + ' [WARN] ' + text) // COMMENT: write to log formatted
+    ls.write(nowDate + ' [WARN] ' + stripthes(text)) // COMMENT: write to log unformatted
+    debug.warn(nowDate + ' ' + warns(chat))
+    // process.stdout.write(nowDate + ` ${warns('[WARN]')} ` + warns(text))
+  },
+  error () {
     const text = util.format.apply(this, arguments) + '\n'
+    const chat = util.format.apply(this, arguments)
+    ds.write(nowDate + ' [ERR] ' + text) // COMMENT: write to log formatted
+    ls.write(nowDate + ' [ERR] ' + stripthes(text)) // COMMENT: write to log unformatted
+    debug.error(nowDate + ' ' + errors(chat))
+    // process.stdout.write(nowDate + ` ${errors('[ERR]')} ` + errors(text))
+  },
+  debug () {
+    const text = util.format.apply(this, arguments) + '\n'
+    const chat = util.format.apply(this, arguments)
+    ds.write(nowDate + ' [DBUG] ' + text) // COMMENT: write to log formatted
+    if (config.debug === true) {
+      debug.debug(nowDate + ' ' + chat)
+      // process.stdout.write(nowDate + ' [DEBUG] ' + text)
+    }
+  },
+  verbose () {
+    const text = util.format.apply(this, arguments) + '\n'
+    const chat = util.format.apply(this, arguments)
     ds.write(nowDate + ' [VERBOSE] ' + text)
+    // debug.verbose(nowDate + ' ' + chat)
   }
 }
-logging()
+process.on('unhandledRejection', (reason, promise) => {
+  log.error(`Unhandled Rejection at: "${promise}"`)
+  log.error(`Reason: "${reason}"`)
+  // Application specific logging, throwing an error, or other logic here
+})
 // SECTION: end logging / begin Discord
 client.login(cred.discordToken)
   .catch(error => {
-    console.error(error)
+    log.error(error)
   })
 client.once('ready', () => {
   // COMMENT: I am fancy and want the title to be WCA once it is logged into discord.
   process.title = config.processTitle ? config.processTitle : 'WCA'
-  console.warn(`Logged into Discord as ${client.user.tag}`)
+  log.warn(`Logged into Discord as ${client.user.tag}`)
   client.guilds.cache.get(config.guildid).channels.cache.get(config.bombChannel).bulkDelete(100) // COMMENT: how do you delete specific messages after a certain time
   runBot(client)
 })
@@ -164,7 +166,7 @@ function runBot (client) {
   function loginBot () {
     // COMMENT: don't have two bots at once please
     if (onWynncraft === true) {
-      console.error('Session already started. Kicking')
+      log.error('Session already started. Kicking')
       bot.emit('kicked', 'this_should_never_fire')
     }
     // COMMENT: get playercount of every world every 30 seconds
@@ -206,40 +208,27 @@ function runBot (client) {
 
   // SECTION: end WCA / begin functions
   // TODO: Seperate everything into their own functions
-  function everything () {
+  async function everything () {
     bot.once('spawn', async () => {
       // COMMENT: prismarine-viewer isn't needed for this bot but it looks cool
       // mineflayerViewer(bot, { viewDistance: 8, port: config.viewerPort, firstPerson: false })
       data = await getData()
       setInterval(write, 10000)
     })
-    bot.once('login', async function onceLoginListenerFunction () {
-      onceLogin()
+    bot.once('login', onceLogin)
+    bot.on('login', onLogin)
+    bot.on('respawn', async function onRespawnListenerFunction () {
+      log.log('Respawn event fired.')
     })
-    bot.on('login', async function onLoginListenerFunction () {
-      onLogin()
-    })
-    bot.on('windowOpen', async function onWindowOpenListenerFunction (window) {
-      onWindowOpen(window)
-    })
+    bot.on('spawn', onSpawn)
+    bot.on('windowOpen', onWindowOpen)
     // COMMENT: This is special regexes for logging and when I can't detect special chats via chatAddPattern
-    bot.on('message', async function onMessageListenerFunction (message) {
-      onMessage(message)
-    })
-    bot.on('bossBarUpdated', async function onBossBarUpdatedListenerFunction (bossBar) {
-      onBossBarUpdated(bossBar)
-    })
-    // COMMENT: Normal chat is pretty much everything but actionbar messages
-    bot.chatAddPattern(
-      /^((?!.+ \d+\/\d+ {4}(?:.*) {4}. \d+\/\d+).+)$/,
-      'normalChat'
-    )
-    bot.on('normalChat', async function onNormalChatListenerFunction (message) {
-      onNormalChat(message)
-    })
+    bot.on('message', onMessage)
+    bot.on('bossBarUpdated', onBossBarUpdated)
+    // COMMENT: Normal chat is pretty much everything but actionbar messages (moved to onMessage)
     // COMMENT: execute other things in everything
   }
-  function bombTracker () {
+  async function bombTracker () {
     if (config.bombTracker === false) return
     bot.chatAddPattern(
       // COMMENT: Bomb Bell tracking
@@ -260,7 +249,7 @@ function runBot (client) {
       onLogBomb(message, username, bomb, world)
     })
   }
-  function guildTracker () {
+  async function guildTracker () {
     if (config.guildTracker === false) return
     bot.chatAddPattern(
       // COMMENT: Territory tracking
@@ -280,7 +269,7 @@ function runBot (client) {
       logGuildBankToDiscord(message, username, deposit, amount, item, fromto, rank)
     })
   }
-  function shoutTracker () {
+  async function shoutTracker () {
     if (config.shoutTracker === false) return
     bot.chatAddPattern(
       // COMMENT: Shout tracking
@@ -294,12 +283,13 @@ function runBot (client) {
   }
   // SECTION: behind the scenes functions that need to go into their own files
   async function onceLogin () {
-    console.warn('Connected to Wynncraft.')
+    log.warn('Connected to Wynncraft.')
     // COMMENT: onWynncraft is set to true on startup
     onWynncraft = true
     client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(nowDate + `${config.firstConnectMessage}`)
   }
   async function onLogin () {
+    log.log('Login event fired.')
     clearInterval(cancelCompass)
     // COMMENT: onAWorld is used for whenever the WCA successfully logs into a world that isn't the hub
     // COMMENT: resoucePackLoading is used for waiting for the resource pack to load
@@ -309,9 +299,14 @@ function runBot (client) {
     // COMMENT: fallback to WC0 until the world is online
     currentWorld = 'WC0'
     discordStatus() // COMMENT: check discord status
-    console.warn('Connected.')
+    log.warn('Connected.')
+  }
+  async function onSpawn () {
+    log.log('Spawn event fired.')
     // COMMENT: Wait for the chunks to load before checking
+    await onLogin()
     await bot.waitForChunksToLoad()
+    log.log('Chunks loaded...')
     if (compassCheck === true) {
       setTimeout(() => {
         compass()
@@ -320,26 +315,26 @@ function runBot (client) {
       compass()
     }
   }
-  function compass () {
+  async function compass () {
     // COMMENT: If already on a world, loading the resource pack or is has been kicked from the server, then do nothing
     if (onAWorld === true || onWynncraft === false || resourcePackLoading === true) {
       return
     }
-    console.log('compass check')
+    log.log('Checking compass')
     bot.setQuickBarSlot(0)
     bot.updateHeldItem()
     // COMMENT: assume that bot is slightly stuck if the held item is nothing
     setTimeout(() => {
       if (bot.heldItem === null || bot.heldItem === undefined) {
-        console.log(bot.heldItem)
+        log.log(bot.heldItem)
       } else {
         const itemHeld = bot.heldItem.name
-        console.log(itemHeld)
+        log.log(itemHeld)
         // COMMENT: click on the recommended world if holding a compass
         // TODO: maybe have it select a world with low player count and/or low uptime
         // I want to minimize it taking up player slots in critical areas
         function compassActivate () {
-          console.warn('Connecting to WC...')
+          log.log('Clicking compass...')
           client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.worldReconnectMessage}`)
           bot.activateItem()
         }
@@ -366,71 +361,49 @@ function runBot (client) {
       // COMMENT: Hardcoded to click on the recommended server slot - might need to be changed if Wynncraft updates their gui
       await bot.clickWindow(13, 0, 0)
       compassCheck = true
+      log.log('Clicked recommended slot.')
     } else if (win.text === '§8§lSelect a Class') {
-      console.error(`somehow in class menu "${win.text}" going to hub - use /toggle autojoin`)
+      log.error(`somehow in class menu "${win.text}" going to hub - use /toggle autojoin`)
       bot.closeWindow(window)
-      hub()
+      hub('Class Menu')
     } else {
       // COMMENT: debugging purposes, this shouldn't happen unless stuck in the class menu
-      console.error(`opened unknown gui with title "${win.text}"`)
+      log.error(`opened unknown gui with title "${win.text}"`)
       bot.closeWindow(window)
     }
   }
   async function onMessage (message) {
     const messageMotd = String(message.toMotd())
-    // const messageString = String(message.toString())
+    const messageString = String(message.toString())
     // const messageAnsi = message.toAnsi()
     realUsername = null
     // COMMENT: Exclude spam has many messages that clutter up your chat such as level up messages and other stuff like that
-    const excludeSpam = /^(?:.+ \d+\/\d+ {4}(?:.*) {4}. \d+\/\d+|.+ is now level .*|\[Info\] .+|As the sun rises, you feel a little bit safer...|\[\+\d+ Soul Points?\]|You still have \d+ unused skill points! Click with your compass to use them!)$/
-    if (excludeSpam.test(message.toString())) {
+    const excludeActionbar = /(?:.+ \d+\/\d+ {4}(?:.*) {4}. \d+\/\d+)/
+    const excludeSpam = /(?:.+ \d+\/\d+ {4}(?:.*) {4}. \d+\/\d+|.+ is now level .*|\[Info\] .+|As the sun rises, you feel a little bit safer...|\[\+\d+ Soul Points?\]|You still have \d+ unused skill points! Click with your compass to use them!)/
+    if (excludeActionbar.test(messageString)) {
       return
     } else {
-      console.info(`${message.toMotd()}`)
-    }
-    // COMMENT: exclude the actionbar because that is the most spammy
-    const excludeActionbar = /^(?:.+ \d+\/\d+ {4}(?:.*) {4}. \d+\/\d+)$/
-    if (!excludeActionbar.test(message.toString())) {
       const jsonString = JSON.stringify(message.json)
-      console.verbose(jsonString)
-      // const jsonParsed = message.json
+      log.verbose(jsonString)
       // COMMENT: Champion Nickname detector - used to get the real username of the bomb thrower and guild messages
       if (message.json.extra) {
         for (let i = 0; i < message.json.extra.length; i++) {
           if (message.json?.extra[i].extra?.[0]?.hoverEvent?.value?.[1]?.text === '\'s real username is ') {
             realUsername = message.json.extra[i]?.extra?.[0]?.hoverEvent?.value?.[2]?.text
             // nickUsername = message.json?.extra[i].extra?.[0]?.hoverEvent?.value?.[0]?.text
-            // console.log(realUsername)
-            // console.log(nickUsername)
+            // log.log(realUsername)
+            // log.log(nickUsername)
           }
         }
       }
-      const guildMessageRegex = /§r§3\[(?:|§r§b(★|★★|★★★|★★★★|★★★★★))§r§3(.*)\]§r§b (.*)§r/
-      if (guildMessageRegex.test(messageMotd)) {
-        const matches = guildMessageRegex.exec(messageMotd)
-        if (matches[2] === 'INFO') {
-          return
-        }
-        const [fullMatch, guildRank, guildUsername, guildMessage] = matches
-        logGuildMessageToDiscord(fullMatch, guildRank, guildUsername, guildMessage)
-      }
-      const guildJoinRegex = /§r§b(\w+)§r§3 has logged into server §r§b(\w+)§r§3 as §r§ba (\w+)§r/
-      if (guildJoinRegex.test(messageMotd)) {
-        const matches = guildJoinRegex.exec(messageMotd)
-        if (matches[1] === bot.username) {
-          return
-        }
-        const [fullMatch, guildUsername, guildWorld, guildClass] = matches
-        logGuildJoinToDiscord(fullMatch, guildUsername, guildWorld, guildClass)
+      if (excludeSpam.test(messageString)) {
+        return
+      } else {
+        log.chat(message.toMotd())
       }
     }
-  }
-  async function onNormalChat (message) {
-    if (message === 'You\'re rejoining too quickly! Give us a moment to save your data.' || message === 'You are already connected to this server!') {
-      compassCheck = true
-    }
-    if (message === 'Loading Resource Pack...') {
-      console.warn('Connected and Loading Resource Pack...')
+    if (messageString === 'Loading Resource Pack...') {
+      log.warn('Connected && Loading Resource Pack...')
       compassCheck = false
       resourcePackLoading = true
       if (resourcePackSendListener) bot.removeListener('resource_pack_send', resourcePackSendListener)
@@ -444,30 +417,47 @@ function runBot (client) {
         bot._client.write('resource_pack_receive', {
           result: 0
         })
-        console.log('Wynnpack accepted.')
+        log.log('Wynnpack accepted.')
         resourcePackLoading = false
       }
       bot._client.once('resource_pack_send', resourcePackSendListener)
-    }
-    if (message === 'Server restarting!' || message === 'The server you were on previously has went down. You have been connected to a fallback server') {
-      client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.hubRestartMessage} <@!${config.masterDiscordUser}>`)
-    }
-    const bombRegex = /^Want to thank (.+)\? Click here to thank them!$/
-    if (bombRegex.test(message)) {
-      // COMMENT: get off the server if an bomb is thrown - some people do item bomb parties
-      hubTimer = setTimeout(() => {
-        console.log(`going to hub because bomb was thrown on ${currentWorld}`)
-        client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.bombRestartMessage} <@!${config.masterDiscordUser}>`)
-        hub()
-      }, 2000)
-    }
-    const botJoinRegex = /(\w+) has logged into server (\w+) as (?:a|an) (.+)/
-    if (botJoinRegex.test(message)) {
-      const matches = botJoinRegex.exec(message)
-      if (matches[1] === bot.username) {
-        const [, username, world, wynnclass] = matches
-        logOnline(username, world, wynnclass)
-        // logGuildJoinToDiscord(message, username, world, wynnclass)
+    } else if (messageString === 'You\'re rejoining too quickly! Give us a moment to save your data.' || message === 'You are already connected to this server!' || message === 'The server is full!') {
+      compassCheck = true
+    } else if (messageString === 'Server restarting!' || message === 'The server you were on previously has went down. You have been connected to a fallback server') {
+      client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.hubRestartMessage} [Server Restart] <@!${config.masterDiscordUser}>`)
+    } else {
+      // COMMENT: Do some regex tests if the above don't work
+      const bombRegex = /^Want to thank (.+)\? Click here to thank them!$/
+      const botJoinRegex = /(\w+) has logged into server (\w+) as (?:a|an) (.+)/
+      const guildMessageRegex = /§r§3\[(?:|§r§b(★|★★|★★★|★★★★|★★★★★))§r§3(.*)\]§r§b (.*)§r/
+      const guildJoinRegex = /§r§b(\w+)§r§3 has logged into server §r§b(\w+)§r§3 as §r§ba (\w+)§r/
+      if (bombRegex.test(messageString)) {
+        // COMMENT: get off the server if an bomb is thrown - some people do item bomb parties
+        hubTimer = setTimeout(() => {
+          log.log(`going to hub because bomb was thrown on ${currentWorld}`)
+          hub('Bomb')
+        }, 2000)
+      } else if (botJoinRegex.test(messageString)) {
+        const matches = botJoinRegex.exec(messageString)
+        if (matches[1] === bot.username) {
+          const [, username, world, wynnclass] = matches
+          logOnline(username, world, wynnclass)
+          // logGuildJoinToDiscord(message, username, world, wynnclass)
+        }
+      } else if (guildMessageRegex.test(messageMotd)) {
+        const matches = guildMessageRegex.exec(messageMotd)
+        if (matches[2] === 'INFO') {
+          return
+        }
+        const [fullMatch, guildRank, guildUsername, guildMessage] = matches
+        logGuildMessageToDiscord(fullMatch, guildRank, guildUsername, guildMessage)
+      } else if (guildJoinRegex.test(messageMotd)) {
+        const matches = guildJoinRegex.exec(messageMotd)
+        if (matches[1] === bot.username) {
+          return
+        }
+        const [fullMatch, guildUsername, guildWorld, guildClass] = matches
+        logGuildJoinToDiscord(fullMatch, guildUsername, guildWorld, guildClass)
       }
     }
   }
@@ -477,9 +467,8 @@ function runBot (client) {
     const bossBarString = stripthes(bossBar.title.text)
     if (bombBarRegex.test(bossBarString)) {
       clearTimeout(hubTimer)
-      console.log(`going to hub because bomb was thrown on ${currentWorld}`)
-      client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.bombRestartMessage} <@!${config.masterDiscordUser}>`)
-      hub()
+      log.log(`going to hub because bomb was thrown on ${currentWorld}`)
+      hub('Bomb')
     }
   }
   async function onLogBomb (message, username, bomb, world) {
@@ -500,7 +489,7 @@ function runBot (client) {
   async function onLogTerritory (territory, time, minutes) {
     // COMMENT: If this ever fires, Wynncraft changed their wars
     if (minutes === 'minute') {
-      console.error('A territory message was sent as a minute.')
+      log.error('A territory message was sent as a minute.')
       return
     }
     if (minutes !== 'seconds' || minutes !== 'second') {
@@ -574,7 +563,7 @@ function runBot (client) {
     // COMMENT: Use their real username if they are a Champion nick
     if (realUsername !== null) username = realUsername
     // COMMENT: track guild bank messages
-    console.log(`detected a ${deposit}`)
+    log.log(`detected a ${deposit}`)
     const bankMessagePrefix = now + ''
     const bankMessageSuffix = `**${amount}** ${item} by **${username}** [${rank}]`
     if (deposit === 'withdrew') {
@@ -595,15 +584,14 @@ function runBot (client) {
     // COMMENT: Use their real username if they are a Champion nick
     if (realUsername !== null) username = realUsername
     // COMMENT: track some explosions
-    console.log(`${bomb} bomb logged`)
+    log.log(`${bomb} bomb logged`)
     const bombMessagePrefix = now + ''
     if (world === undefined || world === null) {
       clearTimeout(hubTimer) // COMMENT: remove the timer if it is reported here
       // COMMENT: If world is somehow not defined, fallback to WC0 or WCA's current world
       world = currentWorld
-      console.log(`going to hub because bomb was thrown on ${world}`)
-      client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.bombRestartMessage}`)
-      hub()
+      log.log(`going to hub because bomb was thrown on ${world}`)
+      hub('Bomb')
     }
     const bombMessageSuffix = `**${world}** by \`${username}\``
     const playerCount = listOnlinePlayers(world)
@@ -698,7 +686,7 @@ function runBot (client) {
         })
     } else {
       // COMMENT: If it doesn't match: (Combat XP, Loot, Dungeon, Profession Speed, Profession XP) then log the error
-      console.error(bomb)
+      log.error(bomb)
     }
     client.guilds.cache.get(config.guildid).channels.cache.get(config.logBombChannel).send(now + ` ${fullMessage}`)
   }
@@ -710,7 +698,7 @@ function runBot (client) {
     // COMMENT: target is met (0 minutes), delete message and stop timer
     timer.addEventListener('targetAchieved', () => {
       msg.delete()
-        .then(console.log('Bomb Message deleted'))
+        .then(log.log('Bomb Message deleted'))
 
       timer.removeEventListener('minutesUpdated')
       timer.removeEventListener('targetAchieved')
@@ -745,6 +733,7 @@ function runBot (client) {
     resourcePackLoading = false
     // COMMENT: Set the currentWorld to the current World instead of WC0
     currentWorld = world
+    log.log(`Online on ${world}`)
     client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.worldConnectMessage}`)
     discordStatus() // COMMENT: check discord status
   }
@@ -770,8 +759,9 @@ function runBot (client) {
     }
     return territoryCoordinates
   }
-  function hub () {
+  function hub (message) {
     if (onAWorld === true && resourcePackLoading === false) {
+      client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.hubRestartMessage} [${message}] <@!${config.masterDiscordUser}>`)
       bot.chat('/hub')
     }
   }
@@ -803,20 +793,20 @@ function runBot (client) {
             return
           }
           bot.emit('kicked', 'discord')
-          console.warn(`WCA has quit game due to ${config.prefix}stop from discord`)
+          log.warn(`WCA has quit game due to ${config.prefix}stop from discord`)
           message.channel.send(`WCA has quit game due to discord - type ${config.prefix}start to start it`)
           client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.stopWCA}`)
           break
         }
         case 'exit': {
-          console.warn('exiting via discord uwu')
+          log.warn('exiting via discord uwu')
           message.channel.send('exiting bot process')
           process.emit('SIGINT')
           break
         }
         case 'sudo': {
           const sudoMessage = args.join(' ')
-          console.warn(`executed "${sudoMessage}"`)
+          log.warn(`executed "${sudoMessage}"`)
           bot.chat(sudoMessage)
           message.channel.send(`executed \`${sudoMessage}\``)
           break
@@ -861,14 +851,14 @@ function runBot (client) {
             return
           }
           loginBot()
-          console.warn(`WCA has joined game - due to ${config.prefix}start from Discord.`)
+          log.warn(`WCA has joined game - due to ${config.prefix}start from Discord.`)
           message.channel.send('starting WCA')
           client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.startWCA}`)
           break
         }
         case 'hub': {
-          hub()
-          console.warn('going to hub...')
+          hub('Discord')
+          log.warn('going to hub...')
           message.channel.send('going to hub...')
           break
         }
@@ -882,7 +872,7 @@ function runBot (client) {
             return
           }
           compass()
-          console.warn('executing compass script')
+          log.warn('executing compass script')
           message.channel.send('executing compass script')
           break
         }
@@ -997,7 +987,7 @@ function runBot (client) {
       if (endProcess === true) return
       onKick('end_bot')
     })
-    bot.on('error', async function onErrorFunctionListener (err) { console.error(err) })
+    bot.on('error', async function onErrorFunctionListener (err) { log.error(err) })
   }
   process.once('SIGINT', function endSIGINT () {
     onProcessStop()
@@ -1020,7 +1010,7 @@ function runBot (client) {
     clearInterval(cancelCompass)
     clearInterval(playerAPICheck)
     // clearInterval(npcInterval)
-    console.error(reason, loggedIn)
+    log.error(reason, loggedIn)
     if (reason === 'end_process') {
       endProcess = true
       bot.quit()
@@ -1034,14 +1024,15 @@ function runBot (client) {
     }
   }
   async function onProcessStop () {
+    endProcess = true
     onKick('end_process')
     setTimeout(() => {
-      console.error('Exiting process NOW')
+      log.error('Exiting process NOW')
       process.exit()
     }, 9000)
     // COMMENT: When exiting, do these things
     // bot.viewer.close() // COMMENT: remove this if you are not using prismarine-viewer
-    console.error('Exiting process in 9 seconds.')
+    log.error('Exiting process in 9 seconds.')
     client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.processEndMessage} <@!${config.masterDiscordUser}>`)
     client.user.setStatus('invisible')
   }
@@ -1083,7 +1074,7 @@ function runBot (client) {
           }
         })
       } else {
-        console.error(`Error when setting status: "onWynncraft": ${onWynncraft} | "onAWorld": ${onAWorld} | "resourcePackLoading": ${resourcePackLoading} `)
+        log.error(`Error when setting status: "onWynncraft": ${onWynncraft} | "onAWorld": ${onAWorld} | "resourcePackLoading": ${resourcePackLoading} `)
       }
     }
   }
@@ -1097,12 +1088,12 @@ async function writeOnlinePlayers () {
       const json = JSON.stringify(r, null, 2)
       fs.writeFile('./onlinePlayers.json', json, err => {
         if (err) {
-          console.error(err)
+          log.error(err)
         }
       })
     })
     .catch(err => {
-      console.error(err)
+      log.error(err)
     }) */
   // COMMENT: switched to sending the request to wynntils
   axios.get('https://athena.wynntils.com/cache/get/serverList')
@@ -1110,12 +1101,12 @@ async function writeOnlinePlayers () {
       const file = JSON.stringify(r.data, null, 2)
       fs.writeFile('./onlinePlayers.json', file, err => {
         if (err) {
-          console.error(err)
+          log.error(err)
         }
       })
     })
     .catch(error => { //  Handle errors
-      console.log(error)
+      log.log(error)
     })
 }
 function listOnlinePlayers (world) {
@@ -1147,11 +1138,10 @@ function getRandomPlayer (world) {
 function writeBombStats (world, bomb) {
   // QUOTE: "this could be done so much better" - U9G
   // COMMENT: Add +1 to a specific bomb on a world
-  const file = JSON.parse(fs.readFileSync('./WCStats.json', 'utf8'))
-  console.log(world + ': ' + bomb)
-  file[`${world}`][`${bomb}`] += 1
-  const writeFile = JSON.stringify(file, null, 2)
-  fs.writeFileSync('./WCStats.json', writeFile)
+  const file = require('./WCStats.json')
+  log.log(`${world}: ${bomb}`)
+  file[world][bomb]++
+  fs.writeFileSync('./WCStats.json', JSON.stringify(file, null, 2))
 }
 function getBombStats (world, stats) {
   // QUOTE: "this could be done so much better" - U9G
@@ -1202,10 +1192,10 @@ function getBombStats (world, stats) {
 
 // COMMENT: U9G thanks for code - this basically logs chat and only chat
 async function getData () {
-  if (!fs.existsSync(fileName)) await fs.promises.writeFile(fileName, '{\n}')
-  return require(path.join(__dirname, fileName))
+  if (!fs.existsSync(chatFile)) await fs.promises.writeFile(chatFile, '{\n}')
+  return require(path.join(__dirname, chatFile))
 }
 async function write () {
-  if (!fs.existsSync(fileName)) await fs.promises.writeFile(fileName, '{\n}')
-  await fs.promises.writeFile(fileName, JSON.stringify(data, null, 2))
+  if (!fs.existsSync(chatFile)) await fs.promises.writeFile(chatFile, '{\n}')
+  await fs.promises.writeFile(chatFile, JSON.stringify(data, null, 2))
 }
