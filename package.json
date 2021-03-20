@@ -1,8 +1,8 @@
 {
-  "name": "wynn-chat-archive-dev",
+  "name": "wynn-chat-archive",
   "version": "1.0.0",
   "description": "Wynncraft chat archiver. Archives wynncraft chat. Not finshed at all",
-  "main": "runBot.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -16,5 +16,13 @@
     "mineflayer": "^3.3.3",
     "mineflayer-tps": "^1.0.1",
     "node-wynn": "^1.2.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/U5B/wynn-chat-archiver.git"
+  },
+  "bugs": {
+    "url": "https://github.com/U5B/wynn-chat-archiver/issues"
+  },
+  "homepage": "https://github.com/U5B/wynn-chat-archiver#readme"
 }
