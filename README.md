@@ -7,7 +7,7 @@ Join my [Discord](https://discord.gg/3UXxqC5kr9/) to see it in action.
 
 ## TODO
 1. Split `index.js` into multiple files.
-2. Fix bugs.
+2. Fix bugs. yes
 3. Add more chat-based features
 
 # Disclaimer
