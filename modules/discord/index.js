@@ -11,9 +11,7 @@ module.exports = {
     const roles = cmd.allowedRoles
 
     const hasAnyRole = () => {
-      roles.forEach(role => {
-        if (msg.member.roles.cache.has(role)) return true
-      })
+      if (roles.some(role => msg.member.roles.cache.has(role))) return true
       return false
     }
 

@@ -23,6 +23,7 @@ const config = require('./modules/config/config.json')
 const cred = require('./modules/config/cred.json')
 // COMMENT: "global" variables
 let bot = null
+const apiCheck = null
 // let nickUsername
 
 // SECTION: end logging / begin Discord
@@ -40,8 +41,6 @@ client.once('ready', async () => {
     runDiscord(message)
   })
 })
-let cancelCompassTimer
-let hubTimer
 
 // SECTION: end Discord / begin WCA
 function loginBot () {
@@ -73,6 +72,7 @@ function loginBot () {
   guildTracker()
   shoutTracker()
 }
+exports.loginBot = loginBot
 const color = require('./modules/colors')
 const simplediscord = require('./modules/simplediscord')
 const log = require('./modules/logging')
@@ -83,13 +83,19 @@ const wcachat = require('./modules/chat')
 const wcaapi = require('./modules/api')
 const universal = require('./modules/univariables')
 const wacresourcepack = require('./modules/plugins/resourcepack')
+const wcabotend = require('./modules/plugins/botEnd')
+const wcabotlobby = require('./modules/plugins/botLobby')
 
 fileCheck.fileCheck()
-wcaapi.onlinePlayers()
 // COMMENT: loginBot() is used to restart the bot when it is disconnected from the server
 // SECTION: end WCA / begin functions
 // TODO: Seperate everything into their own functions
 function everything () {
+  clearInterval(universal.apiInterval)
+  universal.apiInterval = setInterval(() => {
+    wcaapi.onlinePlayers()
+    simplediscord.status()
+  }, 30000)
   bot.once('spawn', onceSpawn)
   bot.once('login', onceLogin)
   bot.on('login', onLogin)
@@ -130,7 +136,7 @@ function shoutTracker () {
   bot.on('chat:logShout', onLogShout)
 }
 // SECTION: behind the scenes functions that need to go into their own files
-async function onceLogin () {
+function onceLogin () {
   log.warn('Connected to Wynncraft.')
   // COMMENT: onWynncraft is set to true on startup
   universal.disconnected = false
@@ -139,9 +145,9 @@ async function onceLogin () {
   // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(nowDate + `${config.firstConnectMessage}`)
   simplediscord.sendDate(config.statusChannel, `${config.firstConnectMessage}`)
 }
-async function onLogin () {
+function onLogin () {
   log.log('Login event fired.')
-  clearInterval(cancelCompassTimer)
+  clearInterval(universal.cancelCompassTimer)
   // COMMENT: onAWorld is used for whenever the WCA successfully logs into a world that isn't the hub
   universal.onAWorld = false
   // COMMENT: clear any compass checks
@@ -150,7 +156,7 @@ async function onLogin () {
   simplediscord.status(client)// COMMENT: check discord status
   log.warn('Connected.')
 }
-async function onceSpawn () {
+function onceSpawn () {
   // COMMENT: prismarine-viewer isn't needed for this bot but it looks cool
   // mineflayerViewer(bot, { viewDistance: 8, port: config.viewerPort, firstPerson: false })
   log.getChat()
@@ -163,71 +169,17 @@ async function onSpawn () {
   log.log('Chunks loaded...')
   if (universal.compassCheck === true) {
     await sleep(5000)
-    compass()
+    wcabotlobby.compass()
   } else {
     await sleep(500)
-    compass()
+    wcabotlobby.compass()
   }
 }
-async function compass () {
-  // COMMENT: If already on a world, loading the resource pack or is has been kicked from the server, then do nothing
-  if (universal.onAWorld === true || universal.onWynncraft === false || universal.resourcePackLoading === true) {
-    return
-  }
-  log.log('Checking compass')
-  bot.setQuickBarSlot(0)
-  // COMMENT: assume that bot is slightly stuck if the held item is nothing
-  if (!bot.heldItem) {
-    log.log(bot.heldItem)
-  } else {
-    const itemHeld = bot.heldItem.name
-    log.log(itemHeld)
-    // COMMENT: click on the recommended world if holding a compass
-    // TODO: maybe have it select a world with low player count and/or low uptime
-    // I want to minimize it taking up player slots in critical areas
-    clearInterval(cancelCompassTimer)
-    async function compassActivate () {
-      log.log('Clicking compass...')
-      // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.worldReconnectMessage} [Lobby]`)
-      simplediscord.sendTime(config.statusChannel, `${config.worldReconnectMessage} [Lobby]`)
-      bot.activateItem()
-    }
-    if (itemHeld === 'compass') {
-      // COMMENT: retry on lobby or restart entire bot if hub is broken
-      await compassActivate()
-      cancelCompassTimer = setInterval(() => {
-        if (universal.onWynncraft === true && universal.onAWorld === false && universal.resourcePackLoading === false) {
-          compassActivate()
-        }
-      }, 15000)
-    }
-  }
-  // if (itemHeld === 'bow' || itemHeld === 'wooden_shovel' || itemHeld === 'iron_shovel' || itemHeld === 'stone_shovel' || itemHeld === 'shears') {
-  //  bot.setQuickBarSlot(7)
-  // }
-}
-async function onWindowOpen (window) {
-  window.requiresConfirmation = false
-  // COMMENT: this is used so that I can technically support any gui in one section of my code
-  const windowText = JSON.parse(window.title).text
-  if (windowText === 'Wynncraft Servers') {
-    // COMMENT: Hardcoded to click on the recommended server slot - might need to be changed if Wynncraft updates their gui
-    await sleep(500)
-    await bot.clickWindow(13, 0, 0)
-    universal.compassCheck = true
-    log.log('Clicked recommended slot.')
-  } else if (windowText === '§8§lSelect a Class') {
-    log.error(`somehow in class menu "${windowText}" going to hub - use /toggle autojoin`)
-    bot.closeWindow(window)
-    hub('Class Menu')
-  } else {
-    // COMMENT: debugging purposes, this shouldn't happen unless stuck in the class menu
-    log.error(`opened unknown gui with title "${windowText}"`)
-    bot.closeWindow(window)
-  }
+function onWindowOpen (window) {
+  wcabotlobby.onWindowOpen(window)
 }
 // let resourcePackSendListener
-async function onMessage (message) {
+function onMessage (message) {
   const messageMotd = String(message.toMotd())
   const messageString = String(message.toString())
   // const messageAnsi = message.toAnsi()
@@ -259,28 +211,6 @@ async function onMessage (message) {
   }
   if (messageString === 'Loading Resource Pack...') {
     wacresourcepack.resourcePackAccept()
-    /*
-    log.warn('Connected && Loading Resource Pack...')
-    // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.worldReconnectMessage}`)
-    simplediscord.sendTime(config.statusChannel, `${config.worldReconnectMessage} [Resource Pack]`)
-    universal.compassCheck = false
-    // COMMENT: resoucePackLoading is used for waiting for the resource pack to load
-    universal.resourcePackLoading = true
-    if (resourcePackSendListener) bot.removeListener('resource_pack_send', resourcePackSendListener)
-    simplediscord.status(client) // COMMENT: check discord status
-    // COMMENT: Accept the resource pack on login: Thanks mat#6207 for giving the code
-    resourcePackSendListener = function onceResourcePackSend () {
-      bot._client.write('resource_pack_receive', {
-        result: 3
-      })
-      bot._client.write('resource_pack_receive', {
-        result: 0
-      })
-      log.log('Wynnpack accepted.')
-      universal.resourcePackLoading = false
-    }
-    bot._client.once('resource_pack_send', resourcePackSendListener)
-    */
   } else {
     // COMMENT: Do some regex tests if the above don't work
     const compassCheckRegex = /(You're rejoining too quickly! Give us a moment to save your data\.|You are already connected to this server!|The server is full!)/
@@ -293,12 +223,12 @@ async function onMessage (message) {
       universal.compassCheck = true
     } else if (serverRestartRegex.test(messageString)) {
       // onKick('server_restart')
-      hub('Server_Restart')
+      wcabotlobby.hub('Server_Restart')
     } else if (bombRegex.test(messageString)) {
       // COMMENT: get off the server if an bomb is thrown - some people do item bomb parties
-      hubTimer = setTimeout(() => {
+      universal.hubTimer = setTimeout(() => {
         log.log(`going to hub because bomb was thrown on ${universal.currentWorld}`)
-        hub('Bomb')
+        wcabotlobby.hub('Bomb')
       }, 2000)
     } else if (botJoinRegex.test(messageString)) {
       const matches = botJoinRegex.exec(messageString)
@@ -329,9 +259,9 @@ async function onBossBarUpdated (bossBar) {
   const bombBarRegex = /(.+) from (.+) \[(\d+) min\]/
   const bossBarString = color.stripthes(bossBar.title.text)
   if (bombBarRegex.test(bossBarString)) {
-    clearTimeout(hubTimer)
+    clearTimeout(universal.hubTimer)
     log.log(`going to hub because bomb was thrown on ${universal.currentWorld}`)
-    hub('Bomb_BossBar')
+    wcabotlobby.hub('Bomb_BossBar')
   }
 }
 async function onLogBomb (message, username, bomb, world) {
@@ -349,11 +279,11 @@ async function onLogBomb (message, username, bomb, world) {
     // COMMENT: Use their real username if they are a Champion nick
     if (universal.realUsername !== null) username = universal.realUsername
     if (world == null) {
-      clearTimeout(hubTimer) // COMMENT: remove the timer if it is reported here
+      clearTimeout(universal.hubTimer) // COMMENT: remove the timer if it is reported here
       // COMMENT: If world is somehow not defined, fallback to WC0 or WCA's current world
       world = universal.currentWorld
       log.log(`going to hub because bomb was thrown on ${world}`)
-      hub('Bomb')
+      wcabotlobby.hub('Bomb')
     }
     wcabomb.logBomb(message, username, bomb, world, timeLeft)
   }
@@ -380,14 +310,7 @@ function onBotJoin (username, world, wynnclass) {
   log.log(`Online on ${world}`)
   // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.worldConnectMessage}`)
   simplediscord.sendTime(config.statusChannel, `${config.worldConnectMessage}`)
-  simplediscord.status(client) // COMMENT: check discord status
-}
-function hub (message) {
-  if (universal.onAWorld === true && universal.resourcePackLoading === false) {
-    // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.hubRestartMessage} [${message}] <@!${config.masterDiscordUser}>`)
-    simplediscord.sendTime(config.statusChannel, `${config.hubRestartMessage} [${message}] <@!${config.masterDiscordUser}>`)
-    bot.chat('/hub')
-  }
+  simplediscord.status() // COMMENT: check discord status
 }
 async function runDiscord (message) {
   // COMMENT: if message doesn't start with the prefix, message author is WCA
@@ -405,7 +328,7 @@ async function runDiscord (message) {
           message.channel.send(`Already offline, type ${config.prefix}start to connect tp Wynncraft.`)
           return
         }
-        onKick('end_discord')
+        wcabotend.onKick('end_discord')
         log.warn(`WCA has quit game due to ${config.prefix}stop from discord`)
         message.channel.send(`WCA has quit game due to discord - type ${config.prefix}start to start it`)
         // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.stopWCA}`)
@@ -430,18 +353,6 @@ async function runDiscord (message) {
         message.channel.send(`[${universal.currentWorld}] TPS: ${tps}`)
         break
       }
-        /* case 'npc': {
-          // COMMENT: entire NPC function interacts with the world and might be bannable
-          if (!args.length) {
-            message.channel.send('reset npc intervals')
-            npc()
-          } else if (args[0]) {
-            const argument = args[0]
-            npc(argument)
-            message.channel.send(`staring at ${argument}`)
-          }
-          break
-        } */
     }
   }
   if (message.member.roles.cache.has(config.masterDiscordRole) || message.member.roles.cache.has(config.trustedDiscordRole)) {
@@ -453,7 +364,7 @@ async function runDiscord (message) {
           message.channel.send(`Already online, type ${config.prefix}stop to quit Wynncraft.`)
           return
         }
-        onRestart('discord')
+        wcabotend.onRestart('discord')
         log.warn(`WCA has joined game - due to ${config.prefix}start from Discord.`)
         message.channel.send('starting WCA')
         // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.startWCA}`)
@@ -461,7 +372,7 @@ async function runDiscord (message) {
         break
       }
       case 'hub': {
-        hub('Discord')
+        wcabotlobby.hub('Discord')
         log.warn('going to hub...')
         message.channel.send('going to hub...')
         break
@@ -475,7 +386,7 @@ async function runDiscord (message) {
           message.channel.send('fail: offline')
           return
         }
-        compass()
+        wcabotlobby.compass()
         log.warn('executing compass script')
         message.channel.send('executing compass script')
         break
@@ -489,98 +400,19 @@ async function runDiscord (message) {
   }
 
   const cmd = discordCommands.commands[command]
-
   if (cmd && discordCommands.checkPermissions(cmd, message)) cmd.execute(message, args, { fileCheck, wcaguild })
 }
 function exitHandler () {
-  bot.on('kicked', onKick)
-  bot.on('end', onEnd)
+  bot.on('kicked', wcabotend.onKick)
+  bot.on('end', wcabotend.onEnd)
   bot.on('error', function onErrorFunctionListener (err) { log.error(err) })
   process.once('SIGINT', function onSIGINT () {
-    onKick('end_process')
+    wcabotend.onKick('end_process')
   })
   process.once('SIGHUP', function onSIGHUP () {
-    onKick('end_process')
+    wcabotend.onKick('end_process')
   })
   process.once('SIGTERM', function onSIGTERM () {
-    onKick('end_process')
+    wcabotend.onKick('end_process')
   })
-}
-async function onKick (reason, loggedIn) {
-  universal.disconnected = true
-  let kickReason
-  const reasonType = typeof reason
-  if (reasonType === 'string') {
-    kickReason = reason
-  } else {
-    kickReason = JSON.stringify(reason)
-  }
-  log.error(`KickReason: "${kickReason}" || LoginState: "${loggedIn}"`)
-  if (kickReason === 'end_discord') {
-    bot.quit()
-    log.warn('Disconnected due to discord.')
-  } else if (kickReason === 'end_process') {
-    bot.quit()
-    log.warn('Disconnected due to process dying.')
-    // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(nowDate + ` ${config.processEndMessage} <@!${config.masterDiscordUser}>`)
-    simplediscord.sendDate(config.statusChannel, `${config.processEndMessage} <@!${config.masterDiscordUser}>`)
-    client.user.setStatus('invisible')
-    await sleep(5000)
-    log.error('Exiting process NOW')
-    process.exit()
-  } else if (kickReason === 'server_restart') {
-    log.warn('Disconnected due to server restart.')
-    // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.kickMessage} \`Server Restart\` <@!${config.masterDiscordUser}>`)
-    simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`Server Restart\` <@!${config.masterDiscordUser}>`)
-    onRestart()
-  } else if (kickReason === '{"text":"ReadTimeoutException : null"}') {
-    universal.disconnected = false
-    simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
-  } else {
-    // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
-    simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
-  }
-}
-async function onEnd (reason) {
-  if (reason == null) {
-    reason = 'user_disconnect'
-  } else {
-    bot.quit()
-  }
-  // COMMENT: Shut all the bot things down when kicked or disconnected
-  universal.onWynncraft = false
-  universal.onAWorld = false
-  universal.resourcePackLoading = false
-  simplediscord.status(client) // COMMENT: check discord status // COMMENT: check discord status
-  // npc()
-  // bot.viewer.close() // COMMENT: remove this if you are not using prismarine-viewer
-  clearInterval(cancelCompassTimer)
-  // clearInterval(npcInterval)
-  log.error(`DisconnectReason: "${reason}" || DisconnectState: "${universal.disconnected}"`)
-  if (universal.disconnected === false) {
-    // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.kickMessage} \`Disconnected...\` <@!${config.masterDiscordUser}>`)
-    simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`Disconnected...\` <@!${config.masterDiscordUser}>`)
-    log.warn('Disconnected. Attempting to reconnect...')
-    onRestart()
-  }
-}
-let cancelLoginTimer
-async function onRestart (state) {
-  universal.disconnected = false
-  clearTimeout(cancelLoginTimer)
-  await bot.quit()
-  // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.restartWCA}`)
-  simplediscord.sendTime(config.statusChannel, `${config.restartWCA}`)
-  // COMMENT: The server you were previously on went down, you have been connected to a fallback server
-  // COMMENT: Server restarting!
-  // COMMENT: The server is restarting in 10 seconds.
-  // COMMENT: The server is restarting in 5 seconds.
-  // COMMENT: The server is restarting in 1 second.
-  if (state === 'discord') {
-    loginBot()
-  } else {
-    cancelLoginTimer = setTimeout(() => {
-      loginBot()
-    }, 5000)
-  }
 }

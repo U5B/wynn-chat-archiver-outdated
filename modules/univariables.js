@@ -8,5 +8,9 @@ module.exports = {
   resourcePackLoading: false,
   compassCheck: false,
   botUsername: null,
-  realUsername: null
+  realUsername: null,
+  cancelCompassTimer: null,
+  cancelLoginTimer: null,
+  hubTimer: null,
+  apiInterval: null
 }
