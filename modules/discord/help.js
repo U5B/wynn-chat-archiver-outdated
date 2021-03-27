@@ -3,6 +3,7 @@ const config = require('../config/config.json')
 module.exports = {
   name: 'help',
   description: 'returns this help message',
+  permissionRoles: [],
   allowedRoles: [config.masterDiscordRole, config.trustedDiscordRole],
   allowedChannels: [config.commandChannel],
   execute (message) {

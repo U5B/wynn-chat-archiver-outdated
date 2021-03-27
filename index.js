@@ -3,7 +3,6 @@ process.env.DEBUG = 'DEBUG,CHAT,INFO,ERROR,WARN,VERBOSE,LOG'
 const mineflayer = require('mineflayer')
 // const mineflayerViewer = require('prismarine-viewer').mineflayer
 const tpsPlugin = require('mineflayer-tps')(mineflayer)
-const discordCommands = require('./modules/discord')
 
 // SECTION: Discord modules
 const discord = require('discord.js')
@@ -23,7 +22,6 @@ const config = require('./modules/config/config.json')
 const cred = require('./modules/config/cred.json')
 // COMMENT: "global" variables
 let bot = null
-const apiCheck = null
 // let nickUsername
 
 // SECTION: end logging / begin Discord
@@ -85,6 +83,7 @@ const universal = require('./modules/univariables')
 const wacresourcepack = require('./modules/plugins/resourcepack')
 const wcabotend = require('./modules/plugins/botEnd')
 const wcabotlobby = require('./modules/plugins/botLobby')
+const discordCommands = require('./modules/discord')
 
 fileCheck.fileCheck()
 // COMMENT: loginBot() is used to restart the bot when it is disconnected from the server
@@ -398,7 +397,6 @@ async function runDiscord (message) {
       }
     }
   }
-
   const cmd = discordCommands.commands[command]
   if (cmd && discordCommands.checkPermissions(cmd, message)) cmd.execute(message, args, { fileCheck, wcaguild })
 }
