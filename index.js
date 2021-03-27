@@ -80,7 +80,7 @@ const wcaguild = require('./modules/guild')
 const wcachat = require('./modules/chat')
 const wcaapi = require('./modules/api')
 const universal = require('./modules/univariables')
-const wacresourcepack = require('./modules/plugins/resourcepack')
+const wcaresourcepack = require('./modules/plugins/resourcepack')
 const wcabotend = require('./modules/plugins/botEnd')
 const wcabotlobby = require('./modules/plugins/botLobby')
 const discordCommands = require('./modules/discord')
@@ -209,7 +209,7 @@ function onMessage (message) {
     }
   }
   if (messageString === 'Loading Resource Pack...') {
-    wacresourcepack.resourcePackAccept()
+    wcaresourcepack.resourcePackAccept()
   } else {
     // COMMENT: Do some regex tests if the above don't work
     const compassCheckRegex = /(You're rejoining too quickly! Give us a moment to save your data\.|You are already connected to this server!|The server is full!)/
@@ -398,7 +398,7 @@ async function runDiscord (message) {
     }
   }
   const cmd = discordCommands.commands[command]
-  if (cmd && discordCommands.checkPermissions(cmd, message)) cmd.execute(message, args, { fileCheck, wcaguild })
+  if (cmd && discordCommands.checkPermissions(cmd, message)) cmd.execute(message, args, { color, simplediscord, log, fileCheck, wcabomb, wcaguild, wcachat, wcaapi, universal, wcaresourcepack, wcabotend, wcabotlobby })
 }
 function exitHandler () {
   bot.on('kicked', wcabotend.onKick)

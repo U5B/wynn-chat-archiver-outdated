@@ -1,5 +1,4 @@
 const config = require('../config/config.json')
-const fileCheck = require('../files')
 module.exports = {
   name: 'bomb',
   description: 'get bomb stats of a specific world',
@@ -12,7 +11,7 @@ module.exports = {
     } else if (args[2]) {
       message.channel.send(`Too many arguments, try ${config.prefix}bomb WC0 Combat_XP or ${config.prefix}bomb WC0`)
     } else if (args[0]) {
-      const answer = fileCheck.getBombStats(args[0], args[1])
+      const answer = customs.fileCheck.getBombStats(args[0], args[1])
       if (answer === null) {
         message.channel.send('Internal error occured')
         return
