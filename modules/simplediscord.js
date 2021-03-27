@@ -3,14 +3,13 @@ const { client } = require('../index.js')
 const universal = require('./univariables.js')
 const log = require('./logging.js')
 
-const discordexport = {}
-discordexport.sendTime = function sendDiscordTime (channel, message) {
+export function sendTime (channel, message) {
   client.guilds.cache.get(config.guildid).channels.cache.get(channel).send(`[${new Date(Date.now()).toLocaleTimeString('en-US')}] ${message}`)
 }
-discordexport.sendDate = function sendDiscordDate (channel, message) {
+export function sendDate (channel, message) {
   client.guilds.cache.get(config.guildid).channels.cache.get(channel).send(`[${new Date(Date.now()).toLocaleString('en-US')}] ${message}`)
 }
-discordexport.status = function discordStatus (status) {
+export function status (status) {
   const onWynncraft = universal.onWynncraft.get()
   const onAWorld = universal.onAWorld.get()
   const resourcePackLoading = universal.resourcePackLoading.get()
@@ -39,4 +38,4 @@ discordexport.status = function discordStatus (status) {
   }
 }
 
-module.exports = discordexport
+export default { sendDate, sendTime, status }

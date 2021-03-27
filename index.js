@@ -3,6 +3,7 @@ process.env.DEBUG = 'DEBUG,CHAT,INFO,ERROR,WARN,VERBOSE,LOG'
 const mineflayer = require('mineflayer')
 // const mineflayerViewer = require('prismarine-viewer').mineflayer
 const tpsPlugin = require('mineflayer-tps')(mineflayer)
+const discordCommands = require('./modules/discord')
 
 // SECTION: Discord modules
 const discord = require('discord.js')
@@ -12,8 +13,8 @@ exports.sleep = sleep
 
 // SECTION: File system and other logging
 // const process = require('process')
-const fs = require('fs')
-const axios = require('axios')
+// const fs = require('fs')
+// const axios = require('axios')
 
 // COMMENT: other files
 
@@ -395,21 +396,10 @@ async function runDiscord (message) {
   }
   const args = message.content.slice(config.prefix.length).trim().split(/ +/)
   const command = args.shift().toLowerCase()
-  let bypassRole = false
   if (message.member.roles.cache.has(config.masterDiscordRole)) {
     // COMMENT: "Trusted Role Commands"
     // COMMENT: People with this role can use this command anywhere.
     switch (command) {
-      case 'help': {
-        message.channel.send(
-          `\`\`\`Trusted:
-          stop = stops the WCA
-          exit = panic command to stop everything
-          sudo = sudo the bot to do something in chat / make sure you put a slash before any commands
-          tps = get current tps on world\`\`\``
-        )
-        break
-      }
       case 'stop': {
         if (universal.onWynncraft.get() === false) {
           message.channel.send(`Already offline, type ${config.prefix}start to connect tp Wynncraft.`)
@@ -455,20 +445,9 @@ async function runDiscord (message) {
     }
   }
   if (message.member.roles.cache.has(config.masterDiscordRole) || message.member.roles.cache.has(config.trustedDiscordRole)) {
-    bypassRole = true
     switch (command) {
       // COMMENT: "Truwusted Role Commands"
       // COMMENT: People with this role can use this command anywhere.
-      case 'help': {
-        message.channel.send(
-          `\`\`\`Truwusted:
-          start = starts the WCA
-          hub = go to hub and join a new world
-          compass = force compass check
-          stream = toggle stream mode\`\`\``
-        )
-        break
-      }
       case 'start': {
         if (universal.onWynncraft.get() === true) {
           message.channel.send(`Already online, type ${config.prefix}stop to quit Wynncraft.`)
@@ -508,68 +487,10 @@ async function runDiscord (message) {
       }
     }
   }
-  if (bypassRole === false) {
-    if (message.channel.id !== config.commandChannel) return
-  }
-  switch (command) {
-    // COMMENT: Anyone can use these commands in the command channel
-    case 'null': {
-      message.channel.send('null')
-      break
-    }
-    case 'help': {
-      message.channel.send(
-        `\`\`\`Everyone:
-        null = returns null
-        help = returns this help message
-        random = returns a random player on that specific world
-        bomb = get bomb stats of a specific world\`\`\``
-      )
-      break
-    }
-    case 'random': {
-      if (!args.length) {
-        message.channel.send('Specify a world to fetch a random player')
-      } else if (args[0]) {
-        const argument = args[0]
-        const answer = await fileCheck.getRandomPlayer(argument)
-        message.channel.send(`\`${answer}\``)
-      }
-      break
-    }
-    // COMMENT: uwu
-    case 'bomb': {
-      if (!args.length) {
-        message.channel.send('Specify a world for stats')
-      } else if (args[2]) {
-        message.channel.send(`Too many arguments, try ${config.prefix}bomb WC0 Combat_XP or ${config.prefix}bomb WC0`)
-      } else if (args[0]) {
-        const argument1 = args[0]
-        const argument2 = args[1]
-        const answer = fileCheck.getBombStats(argument1, argument2)
-        if (answer === null) {
-          message.channel.send('Internal error occured')
-          return
-        }
-        message.channel.send(answer)
-      }
-      break
-    }
-    case 'territory': {
-      if (!args.length) {
-        message.channel.send('Specify a territroy for it\'s location')
-      } else if (args[0]) {
-        const argument1 = args[0]
-        const answer = await wcaguild.territoryLocation(argument1)
-        if (answer === null) {
-          message.channel.send('Internal error occured')
-          return
-        }
-        message.channel.send(answer)
-      }
-      break
-    }
-  }
+
+  const cmd = discordCommands.commands[command]
+
+  if (cmd && discordCommands.checkPermissions(cmd, message)) cmd.execute(message, args, { fileCheck, wcaguild })
 }
 function exitHandler () {
   bot.on('kicked', onKick)
