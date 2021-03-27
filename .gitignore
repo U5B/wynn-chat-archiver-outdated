@@ -1,7 +1,13 @@
 node_modules/
+package-lock.json
+
+modules/api/
+modules/config/
 logs/
+
 cred.json
 config.json
+
 territorylocations.json
 WCStats.json
 WCStatsGen.js
