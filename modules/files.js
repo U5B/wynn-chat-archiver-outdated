@@ -1,5 +1,4 @@
 const config = require('./config/config.json')
-const log = require('./logging.js')
 const fs = require('fs')
 const path = require('path')
 const axios = require('axios')
@@ -76,37 +75,5 @@ files.getBombStats = function getBombStats (world, stats) {
     worldStats = combatXP + '\n' + loot + '\n' + dungeon + '\n' + professionSpeed + '\n' + professionXP
   }
   return worldStats
-}
-files.fileCheck = function filesExist () {
-  fs.access(path.join(__dirname, '/api/territorylocations.json'), fs.constants.F_OK, (err) => {
-    if (err) {
-      log.log('Making territorylocations.json')
-      axios.get('https://api.wynncraft.com/public_api.php?action=territoryList')
-        .then(r => {
-          const file = JSON.stringify(r.data, null, 2)
-          fs.writeFileSync(path.join(__dirname, '/api/territorylocations.json'), file)
-        })
-        .catch(error => { //  Handle errors
-          log.log(error)
-        })
-    }
-  })
-  fs.access(path.join(__dirname, '/api/WCStats.json'), fs.constants.F_OK, (err) => {
-    if (err) {
-      log.log('Making WCStats.json')
-      const data = {}
-      for (let i = 0; i < 100; i++) {
-        data[`WC${i}`] = {
-          'Combat XP': 0,
-          Dungeon: 0,
-          Loot: 0,
-          'Profession Speed': 0,
-          'Profession XP': 0
-        }
-      }
-      const jsonString = JSON.stringify(data, null, 2)
-      fs.writeFileSync(path.join(__dirname, '/api/WCStats.json'), jsonString)
-    }
-  })
 }
 module.exports = files

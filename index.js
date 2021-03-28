@@ -10,11 +10,9 @@ const client = new discord.Client({ disableMentions: 'everyone' })
 const sleep = ms => new Promise((resolve, reject) => setTimeout(resolve, ms))
 exports.sleep = sleep
 
-// SECTION: File system and other logging
-// const process = require('process')
-// const fs = require('fs')
-// const axios = require('axios')
-
+// SECTION: File system checks
+const fileChecks = require('./modules/fileCheck')
+fileChecks.fileCheck()
 // COMMENT: other files
 
 // SECTION: all of the configs I need and wynncraft api
@@ -85,7 +83,6 @@ const wcabotend = require('./modules/plugins/botEnd')
 const wcacore = require('./modules/plugins/core')
 const discordCommands = require('./modules/discord')
 
-fileCheck.fileCheck()
 // COMMENT: loginBot() is used to restart the bot when it is disconnected from the server
 // SECTION: end WCA / begin functions
 // TODO: Seperate everything into their own functions
