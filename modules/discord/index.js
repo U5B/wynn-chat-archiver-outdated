@@ -1,10 +1,20 @@
 module.exports = {
   commands: {
-    bomb: require('./bomb'),
-    help: require('./help'),
-    null: require('./null'),
-    random: require('./random'),
-    territory: require('./territory')
+    bomb: require('./commands/everyone/bomb'),
+    help: require('./commands/everyone/help'),
+    null: require('./commands/everyone/null'),
+    random: require('./commands/everyone/random'),
+    territory: require('./commands/everyone/territory'),
+    // COMMENT: trusted role
+    compass: require('./commands/trusted/compass'),
+    hub: require('./commands/trusted/hub'),
+    start: require('./commands/trusted/start'),
+    stream: require('./commands/trusted/stream'),
+    tps: require('./commands/master/tps'),
+    // COMMENT: master role
+    stop: require('./commands/master/stop'),
+    exit: require('./commands/master/exit'),
+    sudo: require('./commands/master/sudo')
   },
   checkPermissions: (cmd, msg) => {
     const permissions = cmd.permissionRoles

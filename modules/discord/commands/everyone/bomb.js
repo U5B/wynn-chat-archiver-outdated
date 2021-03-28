@@ -1,4 +1,4 @@
-const config = require('../config/config.json')
+const config = require('../../../config/config.json')
 module.exports = {
   name: 'bomb',
   description: 'get bomb stats of a specific world',

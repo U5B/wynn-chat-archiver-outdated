@@ -313,92 +313,12 @@ function onBotJoin (username, world, wynnclass) {
 }
 async function runDiscord (message) {
   // COMMENT: if message doesn't start with the prefix, message author is WCA
-  if (!message.content.startsWith(config.prefix) || message.author.bot) {
-    return
-  }
+  if (!message.content.startsWith(config.prefix) || message.author.bot) return
   const args = message.content.slice(config.prefix.length).trim().split(/ +/)
   const command = args.shift().toLowerCase()
-  if (message.member.roles.cache.has(config.masterDiscordRole)) {
-    // COMMENT: "Trusted Role Commands"
-    // COMMENT: People with this role can use this command anywhere.
-    switch (command) {
-      case 'stop': {
-        if (universal.onWynncraft === false) {
-          message.channel.send(`Already offline, type ${config.prefix}start to connect tp Wynncraft.`)
-          return
-        }
-        wcabotend.onKick('end_discord')
-        log.warn(`WCA has quit game due to ${config.prefix}stop from discord`)
-        message.channel.send(`WCA has quit game due to discord - type ${config.prefix}start to start it`)
-        // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.stopWCA}`)
-        simplediscord.sendTime(config.statusChannel, `${config.stopWCA}`)
-        break
-      }
-      case 'exit': {
-        log.warn('exiting via discord uwu')
-        message.channel.send('exiting bot process')
-        process.emit('SIGINT')
-        break
-      }
-      case 'sudo': {
-        const sudoMessage = args.join(' ')
-        log.warn(`executed "${sudoMessage}"`)
-        bot.chat(sudoMessage)
-        message.channel.send(`executed \`${sudoMessage}\``)
-        break
-      }
-      case 'tps': {
-        const tps = bot.getTps()
-        message.channel.send(`[${universal.currentWorld}] TPS: ${tps}`)
-        break
-      }
-    }
-  }
-  if (message.member.roles.cache.has(config.masterDiscordRole) || message.member.roles.cache.has(config.trustedDiscordRole)) {
-    switch (command) {
-      // COMMENT: "Truwusted Role Commands"
-      // COMMENT: People with this role can use this command anywhere.
-      case 'start': {
-        if (universal.onWynncraft === true) {
-          message.channel.send(`Already online, type ${config.prefix}stop to quit Wynncraft.`)
-          return
-        }
-        wcabotend.onRestart('discord')
-        log.warn(`WCA has joined game - due to ${config.prefix}start from Discord.`)
-        message.channel.send('starting WCA')
-        // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.startWCA}`)
-        simplediscord.sendTime(config.statusChannel, `${config.startWCA}`)
-        break
-      }
-      case 'hub': {
-        wcabotlobby.hub('Discord')
-        log.warn('going to hub...')
-        message.channel.send('going to hub...')
-        break
-      }
-      case 'compass': {
-        if (universal.onAWorld === true) {
-          message.channel.send('fail: already on a world')
-          return
-        }
-        if (universal.onWynncraft === false) {
-          message.channel.send('fail: offline')
-          return
-        }
-        wcabotlobby.compass()
-        log.warn('executing compass script')
-        message.channel.send('executing compass script')
-        break
-      }
-      case 'stream': {
-        bot.chat('/stream')
-        message.channel.send('Toggled stream mode.')
-        break
-      }
-    }
-  }
+
   const cmd = discordCommands.commands[command]
-  if (cmd && discordCommands.checkPermissions(cmd, message)) cmd.execute(message, args, { color, simplediscord, log, fileCheck, wcabomb, wcaguild, wcachat, wcaapi, universal, wcaresourcepack, wcabotend, wcabotlobby })
+  if (cmd && discordCommands.checkPermissions(cmd, message)) cmd.execute(message, args, { bot, color, simplediscord, log, fileCheck, wcabomb, wcaguild, wcachat, wcaapi, universal, wcaresourcepack, wcabotend, wcabotlobby })
 }
 function exitHandler () {
   bot.on('kicked', wcabotend.onKick)

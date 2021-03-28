@@ -1,4 +1,4 @@
-const config = require('../config/config.json')
+const config = require('../../../config/config.json')
 
 module.exports = {
   name: 'null',
@@ -6,7 +6,7 @@ module.exports = {
   permissionRoles: [],
   allowedRoles: [config.masterDiscordRole, config.trustedDiscordRole],
   allowedChannels: [config.commandChannel],
-  execute (message) {
+  execute (message, args, customs) {
     message.channel.send('null')
   }
 }
