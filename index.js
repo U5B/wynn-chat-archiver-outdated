@@ -318,7 +318,11 @@ async function runDiscord (message) {
   const command = args.shift().toLowerCase()
 
   const cmd = discordCommands.commands[command]
-  if (cmd && discordCommands.checkPermissions(cmd, message)) cmd.execute(message, args, { bot, color, simplediscord, log, fileCheck, wcabomb, wcaguild, wcachat, wcaapi, universal, wcaresourcepack, wcabotend, wcabotlobby })
+  if (cmd && discordCommands.checkPermissions(cmd, message)) {
+    cmd.execute(message, args, { bot, color, simplediscord, log, fileCheck, wcabomb, wcaguild, wcachat, wcaapi, universal, wcaresourcepack, wcabotend, wcabotlobby })
+  } else {
+    message.channel.send('no permission / unknown command')
+  }
 }
 function exitHandler () {
   bot.on('kicked', wcabotend.onKick)
