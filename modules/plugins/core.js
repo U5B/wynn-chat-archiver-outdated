@@ -4,15 +4,15 @@ const log = require('../logging')
 const simplediscord = require('../simplediscord')
 const { sleep } = require('../../index')
 
-const botlobby = {}
-botlobby.hub = function hub (message) {
+const botcore = {}
+botcore.hub = function hub (message) {
   if (universal.onAWorld === true && universal.resourcePackLoading === false) {
     // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.hubRestartMessage} [${message}] <@!${config.masterDiscordUser}>`)
     simplediscord.sendTime(config.statusChannel, `${config.hubRestartMessage} [${message}] <@!${config.masterDiscordUser}>`)
     universal.bot.chat('/hub')
   }
 }
-botlobby.compass = async function compass () {
+botcore.compass = async function compass () {
   // COMMENT: If already on a world, loading the resource pack or is has been kicked from the server, then do nothing
   if (universal.onAWorld || !universal.onWynncraft || universal.resourcePackLoading) return
   log.log('Checking compass')
@@ -47,7 +47,7 @@ botlobby.compass = async function compass () {
   //  bot.setQuickBarSlot(7)
   // }
 }
-botlobby.onWindowOpen = async function onWindowOpen (window) {
+botcore.onWindowOpen = async function onWindowOpen (window) {
   window.requiresConfirmation = false
   // COMMENT: this is used so that I can technically support any gui in one section of my code
   const windowText = JSON.parse(window.title).text
@@ -60,11 +60,36 @@ botlobby.onWindowOpen = async function onWindowOpen (window) {
   } else if (windowText === '§8§lSelect a Class') {
     log.error(`somehow in class menu "${windowText}" going to hub - use /toggle autojoin`)
     universal.bot.closeWindow(window)
-    botlobby.hub('Class Menu')
+    botcore.hub('Class Menu')
   } else {
     // COMMENT: debugging purposes, this shouldn't happen unless stuck in the class menu
     log.error(`opened unknown gui with title "${windowText}"`)
     universal.bot.closeWindow(window)
   }
 }
-module.exports = botlobby
+botcore.chatLog = async function chatLog (message, messageString, excludeSpam) {
+  const jsonString = JSON.stringify(message.json)
+  log.verbose(jsonString)
+  // COMMENT: Champion Nickname detector - used to get the real username of the bomb thrower and guild messages
+  if (message.json.extra) {
+    for (let i = 0; i < message.json.extra.length; i++) {
+      if (message.json?.extra[i].extra?.[0]?.hoverEvent?.value?.[1]?.text === '\'s real username is ') {
+        universal.realUsername = message.json.extra[i]?.extra?.[0]?.hoverEvent?.value?.[2]?.text
+        // nickUsername = message.json?.extra[i].extra?.[0]?.hoverEvent?.value?.[0]?.text
+      }
+    }
+  }
+  if (!excludeSpam.test(messageString)) log.chat(message.toMotd())
+}
+botcore.onBotJoin = async function onBotJoin (username, world, wynnclass) {
+  // COMMENT: Your now on a world - you have stopped loading resource pack lol
+  universal.onAWorld = true
+  universal.resourcePackLoading = false
+  // COMMENT: Set the currentWorld to the current World instead of WC0
+  universal.currentWorld = world
+  log.log(`Online on ${world}`)
+  // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.worldConnectMessage}`)
+  simplediscord.sendTime(config.statusChannel, `${config.worldConnectMessage}`)
+  simplediscord.status() // COMMENT: check discord status
+}
+module.exports = botcore

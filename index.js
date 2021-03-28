@@ -29,7 +29,7 @@ client.login(cred.discordToken)
 exports.client = client
 client.once('ready', async () => {
   // COMMENT: I am fancy and want the title to be WCA once it is logged into discord.
-  process.title = config.processTitle ? config.processTitle : 'WCA'
+  process.title = config.processTitle ? config.processTitle : 'Wynn Chat Archive'
   log.warn(`Logged into Discord as ${client.user.tag}`)
   await client.guilds.cache.get(config.guildid).channels.cache.get(config.bombChannel).bulkDelete(100) // COMMENT: how do you delete specific messages after a certain time
   // COMMENT: start the bot
@@ -65,7 +65,7 @@ function loginBot () {
   // COMMENT: have the exit handlers run first before anything else
   exitHandler()
   // COMMENT: then run everything
-  everything()
+  init()
   bombTracker()
   guildTracker()
   shoutTracker()
@@ -82,14 +82,14 @@ const wcaapi = require('./modules/api')
 const universal = require('./modules/univariables')
 const wcaresourcepack = require('./modules/plugins/resourcepack')
 const wcabotend = require('./modules/plugins/botEnd')
-const wcabotlobby = require('./modules/plugins/botLobby')
+const wcacore = require('./modules/plugins/core')
 const discordCommands = require('./modules/discord')
 
 fileCheck.fileCheck()
 // COMMENT: loginBot() is used to restart the bot when it is disconnected from the server
 // SECTION: end WCA / begin functions
 // TODO: Seperate everything into their own functions
-function everything () {
+function init () {
   clearInterval(universal.apiInterval)
   universal.apiInterval = setInterval(() => {
     wcaapi.onlinePlayers()
@@ -168,14 +168,14 @@ async function onSpawn () {
   log.log('Chunks loaded...')
   if (universal.compassCheck === true) {
     await sleep(5000)
-    wcabotlobby.compass()
+    wcacore.compass()
   } else {
     await sleep(500)
-    wcabotlobby.compass()
+    wcacore.compass()
   }
 }
 function onWindowOpen (window) {
-  wcabotlobby.onWindowOpen(window)
+  wcacore.onWindowOpen(window)
 }
 // let resourcePackSendListener
 function onMessage (message) {
@@ -186,69 +186,51 @@ function onMessage (message) {
   // COMMENT: Exclude spam has many messages that clutter up your chat such as level up messages and other stuff like that
   const excludeActionbar = /(?:.+ \d+\/\d+ {4}(?:.*) {4}. \d+\/\d+)/
   const excludeSpam = /(?:.+ \d+\/\d+ {4}(?:.*) {4}. \d+\/\d+|.+ is now level .*|\[Info\] .+|As the sun rises, you feel a little bit safer...|\[\+\d+ Soul Points?\]|You still have \d+ unused skill points! Click with your compass to use them!)/
-  if (excludeActionbar.test(messageString)) {
-    return
-  } else {
-    const jsonString = JSON.stringify(message.json)
-    log.verbose(jsonString)
-    // COMMENT: Champion Nickname detector - used to get the real username of the bomb thrower and guild messages
-    if (message.json.extra) {
-      for (let i = 0; i < message.json.extra.length; i++) {
-        if (message.json?.extra[i].extra?.[0]?.hoverEvent?.value?.[1]?.text === '\'s real username is ') {
-          universal.realUsername = message.json.extra[i]?.extra?.[0]?.hoverEvent?.value?.[2]?.text
-          // nickUsername = message.json?.extra[i].extra?.[0]?.hoverEvent?.value?.[0]?.text
-          // log.log(realUsername)
-          // log.log(nickUsername)
-        }
-      }
-    }
-    if (excludeSpam.test(messageString)) {
-      return
+  if (!excludeActionbar.test(messageString)) {
+    wcacore.chatLog(message, messageString, excludeSpam)
+    // COMMENT: I do not want to check for any messages from the actionbar
+    if (messageString === 'Loading Resource Pack...') {
+      wcaresourcepack.resourcePackAccept()
     } else {
-      log.chat(message.toMotd())
-    }
-  }
-  if (messageString === 'Loading Resource Pack...') {
-    wcaresourcepack.resourcePackAccept()
-  } else {
-    // COMMENT: Do some regex tests if the above don't work
-    const compassCheckRegex = /(You're rejoining too quickly! Give us a moment to save your data\.|You are already connected to this server!|The server is full!)/
-    const serverRestartRegex = /(The server is restarting in (10|\d) seconds?\.|Server restarting!|The server you were previously on went down, you have been connected to a fallback server|Server closed|Already connecting to this server!)/
-    const bombRegex = /Want to thank (.+)\? Click here to thank them!/
-    const botJoinRegex = /(\w+) has logged into server (\w+) as (?:a|an) (.+)/
-    const guildMessageRegex = /§r§3\[(?:|§r§b(★|★★|★★★|★★★★|★★★★★))§r§3(.*)\]§r§b (.*)§r/
-    const guildJoinRegex = /§r§b(\w+)§r§3 has logged into server §r§b(\w+)§r§3 as §r§ba (\w+)§r/
-    if (compassCheckRegex.test(messageString)) {
-      universal.compassCheck = true
-    } else if (serverRestartRegex.test(messageString)) {
-      // onKick('server_restart')
-      wcabotlobby.hub('Server_Restart')
-    } else if (bombRegex.test(messageString)) {
-      // COMMENT: get off the server if an bomb is thrown - some people do item bomb parties
-      universal.hubTimer = setTimeout(() => {
-        log.log(`going to hub because bomb was thrown on ${universal.currentWorld}`)
-        wcabotlobby.hub('Bomb')
-      }, 2000)
-    } else if (botJoinRegex.test(messageString)) {
-      const matches = botJoinRegex.exec(messageString)
-      if (matches[1] === universal.botUsername) {
-        const [, username, world, wynnclass] = matches
-        onBotJoin(username, world, wynnclass)
-        // logGuildJoinToDiscord(message, username, world, wynnclass)
-      }
-    } else if (config.guildTracker === true) {
-      if (guildMessageRegex.test(messageMotd)) {
-        const matches = guildMessageRegex.exec(messageMotd)
-        if (matches[2] === 'INFO') return
-        let [fullMessage, guildRank, guildUsername, guildMessage] = matches
-        if (universal.realUsername !== null) guildUsername = universal.realUsername
-        wcaguild.guildMessage(fullMessage, guildRank, guildUsername, guildMessage)
-      } else if (guildJoinRegex.test(messageMotd)) {
-        const matches = guildJoinRegex.exec(messageMotd)
-        if (matches[1] === bot.username) return
-        let [fullMessage, guildUsername, guildWorld, guildClass] = matches
-        if (universal.realUsername !== null) guildUsername = universal.realUsername
-        wcaguild.guildJoin(fullMessage, guildUsername, guildWorld, guildClass)
+      // COMMENT: Do some regex tests if the above don't work
+      const compassCheckRegex = /(You're rejoining too quickly! Give us a moment to save your data\.|You are already connected to this server!|The server is full!)/
+      const serverRestartRegex = /(The server is restarting in (10|\d) seconds?\.|Server restarting!|The server you were previously on went down, you have been connected to a fallback server|Server closed|Already connecting to this server!)/
+      const bombRegex = /Want to thank (.+)\? Click here to thank them!/
+      const botJoinRegex = /§r§a(.+)§r§2 has logged into server §r§a(\w+)§r§2 as §r§a(?:a|an) (\w+)§r/
+      const guildMessageRegex = /§r§3\[(?:|§r§b(★|★★|★★★|★★★★|★★★★★))§r§3(.*)\]§r§b (.*)§r/
+      const guildJoinRegex = /§r§b(.+)§r§3 has logged into server §r§b(\w+)§r§3 as §r§ba (\w+)§r/
+      if (compassCheckRegex.test(messageString)) {
+        universal.compassCheck = true
+      } else if (serverRestartRegex.test(messageString)) {
+        // onKick('server_restart')
+        wcacore.hub('Server_Restart')
+      } else if (bombRegex.test(messageString)) {
+        // COMMENT: get off the server if an bomb is thrown - some people do item bomb parties
+        universal.hubTimer = setTimeout(() => {
+          log.log(`going to hub because bomb was thrown on ${universal.currentWorld}`)
+          wcacore.hub('Bomb')
+        }, 2000)
+      } else if (botJoinRegex.test(messageMotd)) {
+        const matches = botJoinRegex.exec(messageMotd)
+        if (matches[1] === universal.botUsername) {
+          const [, username, world, wynnclass] = matches
+          wcacore.onBotJoin(username, world, wynnclass)
+          // logGuildJoinToDiscord(message, username, world, wynnclass)
+        }
+      } else if (config.guildTracker === true) {
+        if (guildMessageRegex.test(messageMotd)) {
+          const matches = guildMessageRegex.exec(messageMotd)
+          if (matches[2] === 'INFO') return
+          let [fullMessage, guildRank, guildUsername, guildMessage] = matches
+          if (universal.realUsername !== null) guildUsername = universal.realUsername
+          wcaguild.guildMessage(fullMessage, guildRank, guildUsername, guildMessage)
+        } else if (guildJoinRegex.test(messageMotd)) {
+          const matches = guildJoinRegex.exec(messageMotd)
+          if (matches[1] === bot.username) return
+          let [fullMessage, guildUsername, guildWorld, guildClass] = matches
+          if (universal.realUsername !== null) guildUsername = universal.realUsername
+          wcaguild.guildJoin(fullMessage, guildUsername, guildWorld, guildClass)
+        }
       }
     }
   }
@@ -260,7 +242,7 @@ async function onBossBarUpdated (bossBar) {
   if (bombBarRegex.test(bossBarString)) {
     clearTimeout(universal.hubTimer)
     log.log(`going to hub because bomb was thrown on ${universal.currentWorld}`)
-    wcabotlobby.hub('Bomb_BossBar')
+    wcacore.hub('Bomb_BossBar')
   }
 }
 async function onLogBomb (message, username, bomb, world) {
@@ -282,7 +264,7 @@ async function onLogBomb (message, username, bomb, world) {
       // COMMENT: If world is somehow not defined, fallback to WC0 or WCA's current world
       world = universal.currentWorld
       log.log(`going to hub because bomb was thrown on ${world}`)
-      wcabotlobby.hub('Bomb')
+      wcacore.hub('Bomb')
     }
     wcabomb.logBomb(message, username, bomb, world, timeLeft)
   }
@@ -300,17 +282,6 @@ function onLogGuildBank (message, username, deposit, amount, item, fromto, rank)
 function onLogShout (fullMessage, username, world, shoutMessage) {
   wcachat.logShout(fullMessage, username, world, shoutMessage)
 }
-function onBotJoin (username, world, wynnclass) {
-  // COMMENT: Your now on a world - you have stopped loading resource pack lol
-  universal.onAWorld = true
-  universal.resourcePackLoading = false
-  // COMMENT: Set the currentWorld to the current World instead of WC0
-  universal.currentWorld = world
-  log.log(`Online on ${world}`)
-  // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.worldConnectMessage}`)
-  simplediscord.sendTime(config.statusChannel, `${config.worldConnectMessage}`)
-  simplediscord.status() // COMMENT: check discord status
-}
 async function runDiscord (message) {
   // COMMENT: if message doesn't start with the prefix, message author is WCA
   if (!message.content.startsWith(config.prefix) || message.author.bot) return
@@ -319,7 +290,7 @@ async function runDiscord (message) {
 
   const cmd = discordCommands.commands[command]
   if (cmd && discordCommands.checkPermissions(cmd, message)) {
-    cmd.execute(message, args, { bot, color, simplediscord, log, fileCheck, wcabomb, wcaguild, wcachat, wcaapi, universal, wcaresourcepack, wcabotend, wcabotlobby })
+    cmd.execute(message, args, { bot, color, simplediscord, log, fileCheck, wcabomb, wcaguild, wcachat, wcaapi, universal, wcaresourcepack, wcabotend, wcacore })
   } else {
     message.channel.send('no permission / unknown command')
   }

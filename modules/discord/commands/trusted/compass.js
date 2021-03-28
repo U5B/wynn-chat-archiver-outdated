@@ -15,7 +15,7 @@ module.exports = {
       message.channel.send('fail: offline')
       return
     }
-    customs.wcabotlobby.compass()
+    customs.wcacore.compass()
     customs.log.warn('executing compass script')
     message.channel.send('executing compass script')
   }
