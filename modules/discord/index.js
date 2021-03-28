@@ -1,3 +1,4 @@
+// COMMENT: Thanks Moondarker / Unknwn#1537 for rewriting most of my discord commands
 module.exports = {
   commands: {
     bomb: require('./commands/everyone/bomb'),
@@ -20,10 +21,12 @@ module.exports = {
     const permissions = cmd.permissionRoles
     const channels = cmd.allowedChannels
     const roles = cmd.allowedRoles
+    // COMMENT: check if you have a role
     const hasAnyRole = () => {
       if (roles.some(role => msg.member.roles.cache.has(role))) return true
       return false
     }
+    // COMMENT: check if you have permission
     const hasPermission = () => {
       if (permissions.length === 0 || permissions.some(role => msg.member.roles.cache.has(role))) return true
       return false

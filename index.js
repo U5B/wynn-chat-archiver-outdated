@@ -68,6 +68,7 @@ function loginBot () {
   guildTracker()
   shoutTracker()
 }
+
 exports.loginBot = loginBot
 const color = require('./modules/colors')
 const simplediscord = require('./modules/simplediscord')
@@ -105,6 +106,7 @@ function init () {
   bot.on('bossBarUpdated', onBossBarUpdated)
   // COMMENT: execute other things in everything
 }
+
 function bombTracker () {
   if (!config.bombTracker) return
   // COMMENT: Bomb Bell tracking
@@ -115,6 +117,7 @@ function bombTracker () {
   bot.chatAddPattern(/^((\w+) has thrown a (.+) Bomb!.*)$/, 'chat:logBomb')
   bot.on('chat:logBomb', onLogBomb)
 }
+
 function guildTracker () {
   if (!config.guildTracker) return
   // COMMENT: Territory tracking
@@ -125,12 +128,14 @@ function guildTracker () {
   bot.on('chat:logTerritory', onLogTerritory)
   bot.on('chat:logGuildBank', onLogGuildBank)
 }
+
 function shoutTracker () {
   if (!config.shoutTracker) return
   // COMMENT: Shout tracking
   bot.chatAddPattern(/^((\w+) \[(WC\d+)\] shouts: (.+))$/, 'chat:logShout')
   bot.on('chat:logShout', onLogShout)
 }
+
 // SECTION: behind the scenes functions that need to go into their own files
 function onceLogin () {
   log.warn('Connected to Wynncraft.')
@@ -141,6 +146,7 @@ function onceLogin () {
   // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(nowDate + `${config.firstConnectMessage}`)
   simplediscord.sendDate(config.statusChannel, `${config.firstConnectMessage}`)
 }
+
 function onLogin () {
   log.log('Login event fired.')
   clearInterval(universal.cancelCompassTimer)
@@ -152,12 +158,14 @@ function onLogin () {
   simplediscord.status(client)// COMMENT: check discord status
   log.warn('Connected.')
 }
+
 function onceSpawn () {
   // COMMENT: prismarine-viewer isn't needed for this bot but it looks cool
   // mineflayerViewer(bot, { viewDistance: 8, port: config.viewerPort, firstPerson: false })
   log.getChat()
   universal.bot = bot
 }
+
 async function onSpawn () {
   log.log('Spawn event fired.')
   // COMMENT: Wait for the chunks to load before checking
@@ -171,9 +179,11 @@ async function onSpawn () {
     wcacore.compass()
   }
 }
+
 function onWindowOpen (window) {
   wcacore.onWindowOpen(window)
 }
+
 // let resourcePackSendListener
 function onMessage (message) {
   const messageMotd = String(message.toMotd())
@@ -232,6 +242,7 @@ function onMessage (message) {
     }
   }
 }
+
 async function onBossBarUpdated (bossBar) {
   // COMMENT: get off the server if a bomb is in the bossbar
   const bombBarRegex = /(.+) from (.+) \[(\d+) min\]/
@@ -242,6 +253,7 @@ async function onBossBarUpdated (bossBar) {
     wcacore.hub('Bomb_BossBar')
   }
 }
+
 async function onLogBomb (message, username, bomb, world) {
   // COMMENT: Bomb tracking stuff
   const santitze = /(\[.+\] .+: .*|\[.* . .*\] .*|.* whispers to you: .*)/g
@@ -266,19 +278,23 @@ async function onLogBomb (message, username, bomb, world) {
     wcabomb.logBomb(message, username, bomb, world, timeLeft)
   }
 }
+
 async function onLogTerritory (territory, time, minutes) {
   // COMMENT: If this ever fires, Wynncraft changed their wars
   if (minutes === 'minute' || minutes === 'seconds' || minutes === 'second') return
   wcaguild.territory(territory, time)
 }
+
 function onLogGuildBank (message, username, deposit, amount, item, fromto, rank) {
   // COMMENT: Use their real username if they are a Champion nick
   if (universal.realUsername !== null) username = universal.realUsername
   wcaguild.guildBank(message, username, deposit, amount, item, fromto, rank)
 }
+
 function onLogShout (fullMessage, username, world, shoutMessage) {
   wcachat.logShout(fullMessage, username, world, shoutMessage)
 }
+
 async function runDiscord (message) {
   // COMMENT: if message doesn't start with the prefix, message author is WCA
   if (!message.content.startsWith(config.prefix) || message.author.bot) return
@@ -292,6 +308,7 @@ async function runDiscord (message) {
     message.channel.send('no permission / unknown command')
   }
 }
+
 function exitHandler () {
   bot.on('kicked', wcabotend.onKick)
   bot.on('end', wcabotend.onEnd)
