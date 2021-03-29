@@ -34,7 +34,7 @@ Thank you to the many individuals that answered my questions when making this.
 This is worked on in my spare time, and is probably badly coded.
 Feel free to open an PR or issue if something could probably be improved.
 
-Add `if (String(item.name).includes('§')) return` under line 420 `for (const item of packet.data) {` to exclude npcs from tab
+Add `if (String(item.name).includes('§')) return` under line 420 `for (const item of packet.data) {` in mineflayer/lib/plugins/entities.js
 
 
 
