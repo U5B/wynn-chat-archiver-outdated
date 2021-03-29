@@ -172,10 +172,10 @@ async function onSpawn () {
   await bot.waitForChunksToLoad()
   log.log('Chunks loaded...')
   if (universal.compassCheck === true) {
-    await sleep(5000)
+    await sleep(4000)
     wcacore.compass()
   } else {
-    await sleep(500)
+    await sleep(1000)
     wcacore.compass()
   }
 }
@@ -185,7 +185,7 @@ function onWindowOpen (window) {
 }
 
 // let resourcePackSendListener
-function onMessage (message) {
+async function onMessage (message) {
   const messageMotd = String(message.toMotd())
   const messageString = String(message.toString())
   // const messageAnsi = message.toAnsi()
@@ -198,6 +198,10 @@ function onMessage (message) {
     // COMMENT: I do not want to check for any messages from the actionbar
     if (messageString === 'Loading Resource Pack...') {
       wcaresourcepack.resourcePackAccept()
+    } else if (messageString === 'You are already connecting to this server!') {
+      universal.compassCheck = true
+      await sleep(1000)
+      wcacore.compass()
     } else {
       // COMMENT: Do some regex tests if the above don't work
       const compassCheckRegex = /(You're rejoining too quickly! Give us a moment to save your data\.|You are already connected to this server!|The server is full!)/
