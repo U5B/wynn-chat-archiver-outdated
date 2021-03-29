@@ -233,13 +233,13 @@ async function onMessage (message) {
           const matches = guildMessageRegex.exec(messageMotd)
           if (matches[2] === 'INFO') return
           let [fullMessage, guildRank, guildUsername, guildMessage] = matches
-          if (universal.realUsername !== null) guildUsername = universal.realUsername
+          if (universal.realUsername != null) guildUsername = universal.realUsername
           wcaguild.guildMessage(fullMessage, guildRank, guildUsername, guildMessage)
         } else if (guildJoinRegex.test(messageMotd)) {
           const matches = guildJoinRegex.exec(messageMotd)
           if (matches[1] === bot.username) return
           let [fullMessage, guildUsername, guildWorld, guildClass] = matches
-          if (universal.realUsername !== null) guildUsername = universal.realUsername
+          if (universal.realUsername != null) guildUsername = universal.realUsername
           wcaguild.guildJoin(fullMessage, guildUsername, guildWorld, guildClass)
         }
       }
@@ -271,7 +271,7 @@ async function onLogBomb (message, username, bomb, world) {
     // COMMENT: Santize input so that other people can't execute it via DMs
     if (santitze.test(santitzeMessage)) return
     // COMMENT: Use their real username if they are a Champion nick
-    if (universal.realUsername !== null) username = universal.realUsername
+    if (universal.realUsername != null) username = universal.realUsername
     if (world == null) {
       clearTimeout(universal.hubTimer) // COMMENT: remove the timer if it is reported here
       // COMMENT: If world is somehow not defined, fallback to WC0 or WCA's current world
@@ -291,7 +291,7 @@ async function onLogTerritory (territory, time, minutes) {
 
 function onLogGuildBank (message, username, deposit, amount, item, fromto, rank) {
   // COMMENT: Use their real username if they are a Champion nick
-  if (universal.realUsername !== null) username = universal.realUsername
+  if (universal.realUsername != null) username = universal.realUsername
   wcaguild.guildBank(message, username, deposit, amount, item, fromto, rank)
 }
 
