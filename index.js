@@ -68,8 +68,8 @@ function loginBot () {
   guildTracker()
   shoutTracker()
 }
-
 exports.loginBot = loginBot
+
 const color = require('./modules/colors')
 const simplediscord = require('./modules/simplediscord')
 const log = require('./modules/logging')
@@ -163,7 +163,9 @@ function onceSpawn () {
   // COMMENT: prismarine-viewer isn't needed for this bot but it looks cool
   // mineflayerViewer(bot, { viewDistance: 8, port: config.viewerPort, firstPerson: false })
   log.getChat()
-  universal.bot = bot
+  bot.on('physicsTick', () => {
+    universal.bot = bot
+  })
 }
 
 async function onSpawn () {
@@ -171,13 +173,7 @@ async function onSpawn () {
   // COMMENT: Wait for the chunks to load before checking
   await bot.waitForChunksToLoad()
   log.log('Chunks loaded...')
-  if (universal.compassCheck === true) {
-    await sleep(4000)
-    wcacore.compass()
-  } else {
-    await sleep(1000)
-    wcacore.compass()
-  }
+  wcacore.compass()
 }
 
 function onWindowOpen (window) {
@@ -192,30 +188,36 @@ async function onMessage (message) {
   universal.realUsername = undefined
   // COMMENT: Exclude spam has many messages that clutter up your chat such as level up messages and other stuff like that
   const excludeActionbar = /(?:.+ \d+\/\d+ {4}(?:.*) {4}. \d+\/\d+)/
-  const excludeSpam = /(?:.+ \d+\/\d+ {4}(?:.*) {4}. \d+\/\d+|.+ is now level .*|\[Info\] .+|As the sun rises, you feel a little bit safer...|\[\+\d+ Soul Points?\]|You still have \d+ unused skill points! Click with your compass to use them!)/
+  const excludeSpam = /(?:.+ \d+\/\d+ {4}(?:.*) {4}. \d+\/\d+|\[Info\] .+|As the sun rises, you feel a little bit safer...|\[\+\d+ Soul Points?\]|You still have \d+ unused skill points! Click with your compass to use them!)/
   if (!excludeActionbar.test(messageString)) {
     wcacore.chatLog(message, messageString, excludeSpam)
     // COMMENT: I do not want to check for any messages from the actionbar
     if (messageString === 'Loading Resource Pack...') {
       wcaresourcepack.resourcePackAccept()
-    } else if (messageString === 'You are already connecting to this server!') {
-      universal.compassCheck = true
-      await sleep(1000)
-      wcacore.compass()
     } else {
-      // COMMENT: Do some regex tests if the above don't work
+      // COMMENT: Regex for messages in hub that do fire the login event.
       const compassCheckRegex = /(You're rejoining too quickly! Give us a moment to save your data\.|You are already connected to this server!|The server is full!)/
-      const serverRestartRegex = /(The server is restarting in (10|\d) seconds?\.|Server restarting!|The server you were previously on went down, you have been connected to a fallback server|Server closed|Already connecting to this server!)/
-      const bombRegex = /Want to thank (.+)\? Click here to thank them!/
+      // COMMENT: Regex for messages in hub that don't fire the login event.
+      const compassCheckNoRegex = /(You are already connecting to this server!)/
+      // COMMENT: Regex for server restarts.
+      const serverRestartRegex = /(The server is restarting in (10|\d) (minute|second)s?\.|Server restarting!|The server you were previously on went down, you have been connected to a fallback server|Server closed|Already connecting to this server!)/
+      // COMMENT: Regex for bombs.
+      const bombThankRegex = /Want to thank (.+)\? Click here to thank them!/
+      // COMMENT: Regex for bot joining a world.
       const botJoinRegex = /§r§a(.+)§r§2 has logged into server §r§a(\w+)§r§2 as §r§a(?:a|an) (\w+)§r/
+      // COMMENT: Regex for guild message.
       const guildMessageRegex = /§r§3\[(?:|§r§b(★|★★|★★★|★★★★|★★★★★))§r§3(.*)\]§r§b (.*)§r/
+      // COMMENT: Regex for guild members joining.
       const guildJoinRegex = /§r§b(.+)§r§3 has logged into server §r§b(\w+)§r§3 as §r§ba (\w+)§r/
       if (compassCheckRegex.test(messageString)) {
         universal.compassCheck = true
+        wcacore.compass()
+      } else if (compassCheckNoRegex.test(messageString)) {
+        wcacore.compass()
       } else if (serverRestartRegex.test(messageString)) {
         // onKick('server_restart')
         wcacore.hub('Server_Restart')
-      } else if (bombRegex.test(messageString)) {
+      } else if (bombThankRegex.test(messageString)) {
         // COMMENT: get off the server if an bomb is thrown - some people do item bomb parties
         universal.hubTimer = setTimeout(() => {
           log.log(`going to hub because bomb was thrown on ${universal.currentWorld}`)

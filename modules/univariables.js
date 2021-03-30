@@ -12,5 +12,6 @@ module.exports = {
   cancelCompassTimer: null,
   cancelLoginTimer: null,
   hubTimer: null,
-  apiInterval: null
+  apiInterval: null,
+  sleep: ms => new Promise((resolve, reject) => setTimeout(resolve, ms))
 }
