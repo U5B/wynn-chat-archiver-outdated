@@ -265,7 +265,7 @@ async function onBossBarUpdated (bossBar) {
   }
 }
 
-async function onLogBomb (message, username, bomb, world) {
+async function onLogBomb ([[message, username, bomb, world]]) {
   // COMMENT: Bomb tracking stuff
   const santitze = /(\[.+\] .+: .*|\[.* . .*\] .*|.* whispers to you: .*)/g
   const santitzeMessage = String(message)
@@ -290,20 +290,20 @@ async function onLogBomb (message, username, bomb, world) {
   }
 }
 
-async function onLogTerritory (territory, time, minutes) {
+async function onLogTerritory ([[territory, time, minutes]]) {
   // COMMENT: If this ever fires, Wynncraft changed their wars
   if (minutes === 'minute' || minutes === 'seconds' || minutes === 'second') return
   wcaguild.territory(territory, time)
 }
 
-function onLogGuildBank (message, username, deposit, amount, item, fromto, rank) {
+function onLogGuildBank ([[message, username, deposit, amount, item, fromto, rank]]) {
   // COMMENT: Use their real username if they are a Champion nick
   if (universal.realUsername != null) username = universal.realUsername
   wcaguild.guildBank(message, username, deposit, amount, item, fromto, rank)
 }
 
-function onLogShout (fullMessage, username, world, shoutMessage) {
-  wcachat.logShout(fullMessage, username, world, shoutMessage)
+function onLogShout ([[message, username, world, shoutMessage]]) {
+  wcachat.logShout(message, username, world, shoutMessage)
 }
 
 async function runDiscord (message) {
