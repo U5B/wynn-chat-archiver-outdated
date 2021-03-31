@@ -1,13 +1,12 @@
 const config = require('./config/config.json')
 const fs = require('fs')
 const path = require('path')
-const axios = require('axios')
 
 const files = {}
 
 files.listOnline = function listOnlinePlayers (world) {
   // COMMENT: read onlinePlayers.json and return the playercount of the argument / world
-  const parsed = require('./api/onlinePlayers.json')
+  const parsed = JSON.parse(fs.readFileSync(path.join(__dirname, '/api/onlinePlayers.json')))
   let playerCountFromFile
   if (!parsed.servers[`${world}`]) {
     playerCountFromFile = '-1'
@@ -18,7 +17,7 @@ files.listOnline = function listOnlinePlayers (world) {
 }
 files.getRandomPlayer = function getRandomPlayer (world) {
   // COMMENT: read onlinePlayers.json and pick a random player
-  const parsed = require('./api/onlinePlayers.json')
+  const parsed = JSON.parse(fs.readFileSync(path.join(__dirname, '/api/onlinePlayers.json')))
   let randomPlayer
   if (!parsed.servers[`${world}`]) {
     randomPlayer = 'null'
@@ -33,7 +32,7 @@ files.getRandomPlayer = function getRandomPlayer (world) {
 files.getBombStats = function getBombStats (world, stats) {
   // QUOTE: "this could be done so much better" - U9G
   // COMMENT: read onlinePlayers.json and pick a random player
-  const parsed = require('./api/WCStats.json')
+  const parsed = JSON.parse(fs.readFileSync(path.join(__dirname, '/api/WCStats.json')))
   const combatXPEmoji = config.combatXPEmoji ? config.combatXPEmoji : '💣'
   const lootEmoji = config.lootEmoji ? config.lootEmoji : '💣'
   const dungeonEmoji = config.dungeonEmoji ? config.dungeonEmoji : '💣'

@@ -2,6 +2,7 @@ const config = require('./config/config.json')
 const { client } = require('../index.js')
 const log = require('./logging.js')
 const Timer = require('easytimer.js').Timer
+const wynnTerritoryFile = require('./api/territorylocations.json')
 const guild = {}
 
 guild.territory = async function territoryTracker (territory, time) {
@@ -49,7 +50,6 @@ async function territoryTimer (msg, territoryMessage, duration) {
   })
 }
 guild.territoryLocation = async function getTerritoryLocation (territoryName) {
-  const wynnTerritoryFile = require('./api/territorylocations.json')
   const ter = wynnTerritoryFile.territories
   let territoryCoordinates
   const message = territoryName

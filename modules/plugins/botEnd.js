@@ -19,7 +19,9 @@ botend.onKick = async function onKick (reason, loggedIn) {
     universal.bot.quit()
     log.warn('Disconnected due to discord.')
   } else if (kickReason === 'end_process') {
-    universal.bot.quit()
+    if (universal.bot != null) {
+      universal.bot.quit()
+    }
     log.warn('Disconnected due to process dying.')
     // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(nowDate + ` ${config.processEndMessage} <@!${config.masterDiscordUser}>`)
     simplediscord.sendDate(config.statusChannel, `${config.processEndMessage} <@!${config.masterDiscordUser}>`)

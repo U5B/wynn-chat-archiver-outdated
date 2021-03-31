@@ -110,21 +110,25 @@ function init () {
 function bombTracker () {
   if (!config.bombTracker) return
   // COMMENT: Bomb Bell tracking
-  bot.chatAddPattern(/^(\[Bomb Bell\] (.+) has thrown a (.+) Bomb on (WC\d+))$/, 'chat:logBomb')
+  // bot.chatAddPattern(/^(\[Bomb Bell\] (.+) has thrown a (.+) Bomb on (WC\d+))$/, 'chat:logBomb')
+  bot.addChatPattern('logBomb', /^(\[Bomb Bell\] (.+) has thrown a (.+) Bomb on (WC\d+))$/, { parse: true })
   // COMMENT: PM Bomb tracking
-  bot.chatAddPattern(/^(\[(\w+) . (?:.+)\] (.+) on (WC\d+) )$/, 'chat:logBomb')
+  // bot.chatAddPattern(/^(\[(\w+) . (?:.+)\] (.+) on (WC\d+) )$/, 'chat:logBomb')
+  bot.addChatPattern('logBomb', /^(\[(\w+) . (?:.+)\] (.+) on (WC\d+) )$/, { parse: true })
   // COMMENT: Chat Bomb tracking
-  bot.chatAddPattern(/^((\w+) has thrown a (.+) Bomb!.*)$/, 'chat:logBomb')
+  // bot.chatAddPattern(/^((\w+) has thrown a (.+) Bomb!.*)$/, 'chat:logBomb')
+  bot.addChatPattern('logBomb', /^((\w+) has thrown a (.+) Bomb!.*)$/, { parse: true })
   bot.on('chat:logBomb', onLogBomb)
 }
 
 function guildTracker () {
   if (!config.guildTracker) return
   // COMMENT: Territory tracking
-  bot.chatAddPattern(
-    /^\[WAR\] The war for (.+) will start in (\d+) (.+)\.$/, 'chat:logTerritory')
+  // bot.chatAddPattern(/^\[WAR\] The war for (.+) will start in (\d+) (.+)\.$/, 'chat:logTerritory')
+  bot.addChatPattern('logTerritory', /^\[WAR\] The war for (.+) will start in (\d+) (.+)\.$/, { parse: true })
   // COMMENT: Guild Bank tracking
-  bot.chatAddPattern(/^\[INFO\] ((.+) (deposited|withdrew) (\d+x) (.+) (from|to) the Guild Bank \((.+)\))$/, 'chat:logGuildBank')
+  // bot.chatAddPattern(/^\[INFO\] ((.+) (deposited|withdrew) (\d+x) (.+) (from|to) the Guild Bank \((.+)\))$/, 'chat:logGuildBank')
+  bot.addChatPattern('logGuildBank', /^\[INFO\] ((.+) (deposited|withdrew) (\d+x) (.+) (from|to) the Guild Bank \((.+)\))$/, { parse: true })
   bot.on('chat:logTerritory', onLogTerritory)
   bot.on('chat:logGuildBank', onLogGuildBank)
 }
@@ -132,7 +136,8 @@ function guildTracker () {
 function shoutTracker () {
   if (!config.shoutTracker) return
   // COMMENT: Shout tracking
-  bot.chatAddPattern(/^((\w+) \[(WC\d+)\] shouts: (.+))$/, 'chat:logShout')
+  // bot.chatAddPattern(/^((\w+) \[(WC\d+)\] shouts: (.+))$/, 'chat:logShout')
+  bot.addChatPattern('logShout', /^((\w+) \[(WC\d+)\] shouts: (.+))$/, { parse: true })
   bot.on('chat:logShout', onLogShout)
 }
 
@@ -198,7 +203,7 @@ async function onMessage (message) {
       // COMMENT: Regex for messages in hub that do fire the login event.
       const compassCheckRegex = /(You're rejoining too quickly! Give us a moment to save your data\.|You are already connected to this server!|The server is full!)/
       // COMMENT: Regex for messages in hub that don't fire the login event.
-      const compassCheckNoRegex = /(You are already connecting to this server!)/
+      const compassCheckNoRegex = /(Already connecting to this server!|Could not connect to a default or fallback server, please try again later: io.netty.channel.ConnectTimeoutException)/
       // COMMENT: Regex for server restarts.
       const serverRestartRegex = /(The server is restarting in (10|\d) (minute|second)s?\.|Server restarting!|The server you were previously on went down, you have been connected to a fallback server|Server closed|Already connecting to this server!)/
       // COMMENT: Regex for bombs.
