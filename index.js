@@ -1,7 +1,6 @@
 process.env.DEBUG = 'DEBUG,CHAT,INFO,ERROR,WARN,VERBOSE,LOG'
 // SECTION: Mineflayer modules
 const mineflayer = require('mineflayer')
-// const mineflayerViewer = require('prismarine-viewer').mineflayer
 const tpsPlugin = require('mineflayer-tps')(mineflayer)
 
 // SECTION: Discord modules
@@ -19,8 +18,7 @@ fileChecks.fileCheck()
 const config = require('./modules/config/config.json')
 const cred = require('./modules/config/cred.json')
 // COMMENT: "global" variables
-let bot = null
-// let nickUsername
+const universal = require('./modules/univariables')
 
 // SECTION: end logging / begin Discord
 client.login(cred.discordToken)
@@ -40,34 +38,31 @@ client.once('ready', async () => {
 
 // SECTION: end Discord / begin WCA
 function loginBot () {
-  // COMMENT: don't have two bots at once please
   // COMMENT: use config values if no arguments
   const version = config.version
   const ip = process.argv[4] ? process.argv[4] : config.ip
   const port = process.argv[5] ? process.argv[5] : config.port
   const user = process.argv[2] ? process.argv[2] : cred.username
   const pass = process.argv[3] ? process.argv[3] : cred.password
-  bot = mineflayer.createBot({
+  universal.bot = mineflayer.createBot({
     version: version,
     host: ip,
     port: port,
     username: user,
     password: pass,
     viewDistance: 'tiny',
-    hideErrors: false,
     checkTimeoutInterval: 60000
   })
   // COMMENT: load plugin
-  bot.loadPlugin(tpsPlugin)
+  universal.bot.loadPlugin(tpsPlugin)
   // COMMENT: should be a list of functions to run when starting up the WCA
   // COMMENT: have the exit handlers run first before anything else
   exitHandler()
   // COMMENT: then run everything
   init()
-  bombTracker()
-  guildTracker()
-  shoutTracker()
+  chatTrackers()
 }
+// COMMENT: loginBot() is used to restart the bot when it is disconnected from the server
 exports.loginBot = loginBot
 
 const color = require('./modules/colors')
@@ -78,13 +73,11 @@ const wcabomb = require('./modules/bomb')
 const wcaguild = require('./modules/guild')
 const wcachat = require('./modules/chat')
 const wcaapi = require('./modules/api')
-const universal = require('./modules/univariables')
 const wcaresourcepack = require('./modules/plugins/resourcepack')
 const wcabotend = require('./modules/plugins/botEnd')
 const wcacore = require('./modules/plugins/core')
 const discordCommands = require('./modules/discord')
 
-// COMMENT: loginBot() is used to restart the bot when it is disconnected from the server
 // SECTION: end WCA / begin functions
 // TODO: Seperate everything into their own functions
 function init () {
@@ -93,52 +86,48 @@ function init () {
     wcaapi.onlinePlayers()
     simplediscord.status()
   }, 30000)
-  bot.once('spawn', onceSpawn)
-  bot.once('login', onceLogin)
-  bot.on('login', onLogin)
-  bot.on('respawn', async function onRespawnListenerFunction () {
+  universal.bot.once('spawn', onceSpawn)
+  universal.bot.once('login', onceLogin)
+  universal.bot.on('login', onLogin)
+  universal.bot.on('respawn', async function onRespawnListenerFunction () {
     log.log('Respawn event fired.')
   })
-  bot.on('spawn', onSpawn)
-  bot.on('windowOpen', onWindowOpen)
+  universal.bot.on('spawn', onSpawn)
+  universal.bot.on('windowOpen', onWindowOpen)
   // COMMENT: This is special regexes for logging and when I can't detect special chats via chatAddPattern
-  bot.on('message', onMessage)
-  bot.on('bossBarUpdated', onBossBarUpdated)
+  universal.bot.on('message', onMessage)
+  universal.bot.on('bossBarUpdated', onBossBarUpdated)
   // COMMENT: execute other things in everything
 }
-
-function bombTracker () {
-  if (!config.bombTracker) return
-  // COMMENT: Bomb Bell tracking
-  // bot.chatAddPattern(/^(\[Bomb Bell\] (.+) has thrown a (.+) Bomb on (WC\d+))$/, 'chat:logBomb')
-  bot.addChatPattern('logBomb', /^(\[Bomb Bell\] (.+) has thrown a (.+) Bomb on (WC\d+))$/, { parse: true })
-  // COMMENT: PM Bomb tracking
-  // bot.chatAddPattern(/^(\[(\w+) . (?:.+)\] (.+) on (WC\d+) )$/, 'chat:logBomb')
-  bot.addChatPattern('logBomb', /^(\[(\w+) . (?:.+)\] (.+) on (WC\d+) )$/, { parse: true })
-  // COMMENT: Chat Bomb tracking
-  // bot.chatAddPattern(/^((\w+) has thrown a (.+) Bomb!.*)$/, 'chat:logBomb')
-  bot.addChatPattern('logBomb', /^((\w+) has thrown a (.+) Bomb!.*)$/, { parse: true })
-  bot.on('chat:logBomb', onLogBomb)
-}
-
-function guildTracker () {
-  if (!config.guildTracker) return
-  // COMMENT: Territory tracking
-  // bot.chatAddPattern(/^\[WAR\] The war for (.+) will start in (\d+) (.+)\.$/, 'chat:logTerritory')
-  bot.addChatPattern('logTerritory', /^\[WAR\] The war for (.+) will start in (\d+) (.+)\.$/, { parse: true })
-  // COMMENT: Guild Bank tracking
-  // bot.chatAddPattern(/^\[INFO\] ((.+) (deposited|withdrew) (\d+x) (.+) (from|to) the Guild Bank \((.+)\))$/, 'chat:logGuildBank')
-  bot.addChatPattern('logGuildBank', /^\[INFO\] ((.+) (deposited|withdrew) (\d+x) (.+) (from|to) the Guild Bank \((.+)\))$/, { parse: true })
-  bot.on('chat:logTerritory', onLogTerritory)
-  bot.on('chat:logGuildBank', onLogGuildBank)
-}
-
-function shoutTracker () {
-  if (!config.shoutTracker) return
-  // COMMENT: Shout tracking
-  // bot.chatAddPattern(/^((\w+) \[(WC\d+)\] shouts: (.+))$/, 'chat:logShout')
-  bot.addChatPattern('logShout', /^((\w+) \[(WC\d+)\] shouts: (.+))$/, { parse: true })
-  bot.on('chat:logShout', onLogShout)
+function chatTrackers () {
+  if (config.bombTracker) {
+    // COMMENT: Bomb Bell tracking
+    // bot.chatAddPattern(/^(\[Bomb Bell\] (.+) has thrown a (.+) Bomb on (WC\d+))$/, 'chat:logBomb')
+    universal.bot.addChatPattern('logBomb', /^(\[Bomb Bell\] (.+) has thrown a (.+) Bomb on (WC\d+))$/, { parse: true })
+    // COMMENT: PM Bomb tracking
+    // bot.chatAddPattern(/^(\[(\w+) . (?:.+)\] (.+) on (WC\d+) )$/, 'chat:logBomb')
+    universal.bot.addChatPattern('logBomb', /^(\[(\w+) . (?:.+)\] (.+) on (WC\d+) )$/, { parse: true })
+    // COMMENT: Chat Bomb tracking
+    // bot.chatAddPattern(/^((\w+) has thrown a (.+) Bomb!.*)$/, 'chat:logBomb')
+    universal.bot.addChatPattern('logBomb', /^((\w+) has thrown a (.+) Bomb!.*)$/, { parse: true })
+    universal.bot.on('chat:logBomb', onLogBomb)
+  }
+  if (config.guildTracker) {
+    // COMMENT: Territory tracking
+    // bot.chatAddPattern(/^\[WAR\] The war for (.+) will start in (\d+) (.+)\.$/, 'chat:logTerritory')
+    universal.bot.addChatPattern('logTerritory', /^(\[WAR\] The war for (.+) will start in (\d+) (.+)\.)$/, { parse: true })
+    // COMMENT: Guild Bank tracking
+    // bot.chatAddPattern(/^\[INFO\] ((.+) (deposited|withdrew) (\d+x) (.+) (from|to) the Guild Bank \((.+)\))$/, 'chat:logGuildBank')
+    universal.bot.addChatPattern('logGuildBank', /^\[INFO\] ((.+) (deposited|withdrew) (\d+x) (.+) (from|to) the Guild Bank \((.+)\))$/, { parse: true })
+    universal.bot.on('chat:logTerritory', onLogTerritory)
+    universal.bot.on('chat:logGuildBank', onLogGuildBank)
+  }
+  if (config.shoutTracker) {
+    // COMMENT: Shout tracking
+    // bot.chatAddPattern(/^((\w+) \[(WC\d+)\] shouts: (.+))$/, 'chat:logShout')
+    universal.bot.addChatPattern('logShout', /^((\w+) \[(WC\d+)\] shouts: (.+))$/, { parse: true })
+    universal.bot.on('chat:logShout', onLogShout)
+  }
 }
 
 // SECTION: behind the scenes functions that need to go into their own files
@@ -147,7 +136,7 @@ function onceLogin () {
   // COMMENT: onWynncraft is set to true on startup
   universal.disconnected = false
   universal.onWynncraft = true
-  universal.botUsername = bot.username
+  universal.botUsername = universal.bot.username
   // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(nowDate + `${config.firstConnectMessage}`)
   simplediscord.sendDate(config.statusChannel, `${config.firstConnectMessage}`)
 }
@@ -165,18 +154,13 @@ function onLogin () {
 }
 
 function onceSpawn () {
-  // COMMENT: prismarine-viewer isn't needed for this bot but it looks cool
-  // mineflayerViewer(bot, { viewDistance: 8, port: config.viewerPort, firstPerson: false })
   log.getChat()
-  bot.on('physicsTick', () => {
-    universal.bot = bot
-  })
 }
 
 async function onSpawn () {
   log.log('Spawn event fired.')
   // COMMENT: Wait for the chunks to load before checking
-  await bot.waitForChunksToLoad()
+  await universal.bot.waitForChunksToLoad()
   log.log('Chunks loaded...')
   wcacore.compass()
 }
@@ -205,7 +189,7 @@ async function onMessage (message) {
       // COMMENT: Regex for messages in hub that don't fire the login event.
       const compassCheckNoRegex = /(Already connecting to this server!|Could not connect to a default or fallback server, please try again later: io.netty.channel.ConnectTimeoutException)/
       // COMMENT: Regex for server restarts.
-      const serverRestartRegex = /(The server is restarting in (10|\d) (minute|second)s?\.|Server restarting!|The server you were previously on went down, you have been connected to a fallback server|Server closed|Already connecting to this server!)/
+      const serverRestartRegex = /(The server is restarting in (10|\d) (minute|second)s?\.|Server restarting!|The server you were previously on went down, you have been connected to a fallback server|Server closed)/
       // COMMENT: Regex for bombs.
       const bombThankRegex = /Want to thank (.+)\? Click here to thank them!/
       // COMMENT: Regex for bot joining a world.
@@ -218,7 +202,7 @@ async function onMessage (message) {
         universal.compassCheck = true
         wcacore.compass()
       } else if (compassCheckNoRegex.test(messageString)) {
-        wcacore.compass()
+        wcacore.lobbyError()
       } else if (serverRestartRegex.test(messageString)) {
         // onKick('server_restart')
         wcacore.hub('Server_Restart')
@@ -244,7 +228,7 @@ async function onMessage (message) {
           wcaguild.guildMessage(fullMessage, guildRank, guildUsername, guildMessage)
         } else if (guildJoinRegex.test(messageMotd)) {
           const matches = guildJoinRegex.exec(messageMotd)
-          if (matches[1] === bot.username) return
+          if (matches[1] === universal.bot.username) return
           let [fullMessage, guildUsername, guildWorld, guildClass] = matches
           if (universal.realUsername != null) guildUsername = universal.realUsername
           wcaguild.guildJoin(fullMessage, guildUsername, guildWorld, guildClass)
@@ -290,7 +274,7 @@ async function onLogBomb ([[message, username, bomb, world]]) {
   }
 }
 
-async function onLogTerritory ([[territory, time, minutes]]) {
+async function onLogTerritory ([[message, territory, time, minutes]]) {
   // COMMENT: If this ever fires, Wynncraft changed their wars
   if (minutes === 'minute' || minutes === 'seconds' || minutes === 'second') return
   wcaguild.territory(territory, time)
@@ -314,16 +298,16 @@ async function runDiscord (message) {
 
   const cmd = discordCommands.commands[command]
   if (cmd && discordCommands.checkPermissions(cmd, message)) {
-    cmd.execute(message, args, { bot, color, simplediscord, log, fileCheck, wcabomb, wcaguild, wcachat, wcaapi, universal, wcaresourcepack, wcabotend, wcacore })
+    cmd.execute(message, args, { bot: universal.bot, color, simplediscord, log, fileCheck, wcabomb, wcaguild, wcachat, wcaapi, universal, wcaresourcepack, wcabotend, wcacore })
   } else {
     message.channel.send('no permission / unknown command')
   }
 }
 
 function exitHandler () {
-  bot.on('kicked', wcabotend.onKick)
-  bot.on('end', wcabotend.onEnd)
-  bot.on('error', function onErrorFunctionListener (err) { log.error(err) })
+  universal.bot.on('kicked', wcabotend.onKick)
+  universal.bot.on('end', wcabotend.onEnd)
+  universal.bot.on('error', function onErrorFunctionListener (err) { log.error(err) })
   process.once('SIGINT', function onSIGINT () {
     wcabotend.onKick('end_process')
   })

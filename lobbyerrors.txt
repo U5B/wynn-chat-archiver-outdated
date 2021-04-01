@@ -1,0 +1,14 @@
+list of lobby error messages
+You're rejoining too quickly! Give us a moment to save your data.
+You are already connected to this server!
+The server is full!
+Already connecting to this server!
+Could not connect to a default or fallback server, please try again later: io.netty.channel.ConnectTimeoutException
+The server is restarting in 10 minutes.
+The server is restarting in 10 seconds.
+The server is restarting in 1 minute.
+The server is restarting in 1 second.
+Server restarting!
+The server you were previously on went down, you have been connected to a fallback server
+Server closed
+Already connecting to this server!

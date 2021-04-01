@@ -4,6 +4,8 @@ const log = require('../logging')
 const simplediscord = require('../simplediscord')
 const { client, sleep, loginBot } = require('../../index')
 
+let end = false
+
 const botend = {}
 botend.onKick = async function onKick (reason, loggedIn) {
   universal.disconnected = true
@@ -19,9 +21,7 @@ botend.onKick = async function onKick (reason, loggedIn) {
     universal.bot.quit()
     log.warn('Disconnected due to discord.')
   } else if (kickReason === 'end_process') {
-    if (universal.bot != null) {
-      universal.bot.quit()
-    }
+    if (universal.bot != null) universal.bot.quit()
     log.warn('Disconnected due to process dying.')
     // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(nowDate + ` ${config.processEndMessage} <@!${config.masterDiscordUser}>`)
     simplediscord.sendDate(config.statusChannel, `${config.processEndMessage} <@!${config.masterDiscordUser}>`)
@@ -37,12 +37,16 @@ botend.onKick = async function onKick (reason, loggedIn) {
   } else if (kickReason === '{"text":"ReadTimeoutException : null"}') {
     universal.disconnected = false
     simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
+  } else if (kickReason === '{"text":"Could not connect to a default or fallback server, please try again later: io.netty.channel.ConnectTimeoutException","color":"red"}') {
+    universal.disconnected = false
   } else {
     // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
     simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
   }
 }
 botend.onEnd = async function onEnd (reason) {
+  if (end === true) return
+  if (end === false) end = true
   if (reason == null) {
     reason = 'user_disconnect'
   } else {
@@ -53,8 +57,6 @@ botend.onEnd = async function onEnd (reason) {
   universal.onAWorld = false
   universal.resourcePackLoading = false
   simplediscord.status() // COMMENT: check discord status // COMMENT: check discord status
-  // npc()
-  // bot.viewer.close() // COMMENT: remove this if you are not using prismarine-viewer
   clearInterval(universal.cancelCompassTimer)
   // clearInterval(npcInterval)
   log.error(`DisconnectReason: "${reason}" || DisconnectState: "${universal.disconnected}"`)

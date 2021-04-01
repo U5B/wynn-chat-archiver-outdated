@@ -97,4 +97,12 @@ botcore.onBotJoin = async function onBotJoin (username, world, wynnclass) {
   simplediscord.sendTime(config.statusChannel, `${config.worldConnectMessage}`)
   simplediscord.status() // COMMENT: check discord status
 }
+botcore.lobbyError = async function lobbyError (reason) {
+  if (reason == null) reason = ' '
+  if (universal.onAWorld) {
+    botcore.hub(reason)
+  } else {
+    botcore.compass()
+  }
+}
 module.exports = botcore
