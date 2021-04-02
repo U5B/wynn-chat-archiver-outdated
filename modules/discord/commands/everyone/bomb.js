@@ -7,16 +7,22 @@ module.exports = {
   allowedChannels: [config.commandChannel],
   execute (message, args, customs) {
     if (!args.length) {
-      message.channel.send('Specify a world for stats')
-    } else if (args[2]) {
-      message.channel.send(`Too many arguments, try ${config.prefix}bomb WC0 Combat_XP or ${config.prefix}bomb WC0`)
-    } else if (args[0]) {
-      const answer = customs.fileCheck.getBombStats(args[0], args[1])
+      message.channel.send(`Incorrect format: "${config.prefix}bomb lb <Combat_XP>" or "${config.prefix}bomb wc <WC1> [Combat_XP]"`)
+    } else if (args[0] === 'wc') {
+      const answer = customs.fileCheck.getBombStats(args[1], args[2])
       if (answer === null) {
-        message.channel.send('Internal error occured')
+        message.channel.send('Internal error occurred')
         return
       }
       message.channel.send(answer)
+    } else if (args[0] === 'lb') {
+      const answer = customs.fileCheck.getBombLeaderboard(args[1])
+      if (answer === null) {
+        message.channel.send('Internal error occurred')
+      }
+      message.channel.send(`**${args[1]} Leaderboard:**\n\`\`\`${answer}\`\`\``)
+    } else {
+      message.channel.send('Internal error occurred')
     }
   }
 }

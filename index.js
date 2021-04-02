@@ -202,7 +202,7 @@ async function onMessage (message) {
         universal.compassCheck = true
         wcacore.compass()
       } else if (compassCheckNoRegex.test(messageString)) {
-        wcacore.lobbyError()
+        wcacore.lobbyError('Timeout')
       } else if (serverRestartRegex.test(messageString)) {
         // onKick('server_restart')
         wcacore.hub('Server_Restart')

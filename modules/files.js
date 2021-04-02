@@ -75,4 +75,26 @@ files.getBombStats = function getBombStats (world, stats) {
   }
   return worldStats
 }
+files.getBombLeaderboard = function getBombLeaderboard (input) {
+  const parsed = JSON.parse(fs.readFileSync(path.join(__dirname, '/api/WCStats.json')))
+  function sanitize (args) {
+    return {
+      Combat_XP: 'Combat XP',
+      Loot: 'Loot',
+      Dungeon: 'Dungeon',
+      Profession_Speed: 'Profession Speed',
+      Profession_XP: 'Profession XP',
+      'Combat XP': 'Combat XP',
+      'Profession Speed': 'Profession Speed',
+      'Profession XP': 'Profession XP'
+    }[args] ?? null
+  }
+  const stats = sanitize(input)
+  if (stats == null) return null
+  return Object.entries(parsed)
+    .sort(([worldA, a], [worldB, b]) => b[stats] - a[stats])
+    .map((elem, ix) => `${ix + 1}. [${elem[0]}] ${elem[1][stats]}`)
+    .slice(0, 10)
+    .join('\n')
+}
 module.exports = files
