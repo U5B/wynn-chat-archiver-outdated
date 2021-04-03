@@ -13,13 +13,13 @@ botcore.hub = function hub (message) {
   }
 }
 botcore.compass = async function compass () {
-  // COMMENT: If already on a world, loading the resource pack or is has been kicked from the server, then do nothing
-  if (universal.onAWorld || !universal.onWynncraft || universal.resourcePackLoading) return
   if (universal.compassCheck) {
     await sleep(4000)
   } else {
     await sleep(1000)
   }
+  // COMMENT: If already on a world, loading the resource pack or is has been kicked from the server, then do nothing
+  if (universal.onAWorld || !universal.onWynncraft || universal.resourcePackLoading) return
   log.log('Checking compass')
   universal.bot.setQuickBarSlot(0)
   // COMMENT: assume that bot is slightly stuck if the held item is nothing

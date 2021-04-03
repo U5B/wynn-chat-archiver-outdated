@@ -185,9 +185,9 @@ async function onMessage (message) {
       wcaresourcepack.resourcePackAccept()
     } else {
       // COMMENT: Regex for messages in hub that do fire the login event.
-      const compassCheckRegex = /(You're rejoining too quickly! Give us a moment to save your data\.|You are already connected to this server!|The server is full!)/
+      const compassCheckRegex = /(You're rejoining too quickly! Give us a moment to save your data\.|Already connecting to this server!)/
       // COMMENT: Regex for messages in hub that don't fire the login event.
-      const compassCheckNoRegex = /(Already connecting to this server!|Could not connect to a default or fallback server, please try again later: io.netty.channel.ConnectTimeoutException)/
+      const compassCheckErrors = /(Could not connect to a default or fallback server, please try again later: io.netty.channel.ConnectTimeoutException|You are already connected to this server!|The server is full!|.* left the game.|<\w+> .*)/
       // COMMENT: Regex for server restarts.
       const serverRestartRegex = /(The server is restarting in (10|\d) (minute|second)s?\.|Server restarting!|The server you were previously on went down, you have been connected to a fallback server|Server closed)/
       // COMMENT: Regex for bombs.
@@ -200,9 +200,9 @@ async function onMessage (message) {
       const guildJoinRegex = /§r§b(.+)§r§3 has logged into server §r§b(\w+)§r§3 as §r§ba (\w+)§r/
       if (compassCheckRegex.test(messageString)) {
         universal.compassCheck = true
-        wcacore.compass()
-      } else if (compassCheckNoRegex.test(messageString)) {
-        wcacore.lobbyError('Timeout')
+        // wcacore.compass()
+      } else if (compassCheckErrors.test(messageString)) {
+        wcacore.lobbyError('LobbyError')
       } else if (serverRestartRegex.test(messageString)) {
         // onKick('server_restart')
         wcacore.hub('Server_Restart')
@@ -210,7 +210,7 @@ async function onMessage (message) {
         // COMMENT: get off the server if an bomb is thrown - some people do item bomb parties
         universal.hubTimer = setTimeout(() => {
           log.log(`going to hub because bomb was thrown on ${universal.currentWorld}`)
-          wcacore.hub('Bomb')
+          wcacore.hub('Bomb_Thanks')
         }, 2000)
       } else if (botJoinRegex.test(messageMotd)) {
         const matches = botJoinRegex.exec(messageMotd)
