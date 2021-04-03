@@ -141,7 +141,7 @@ function bombCountDown (msg, message, duration, world, playerCountMax) {
 function writeBombStats (world, bomb) {
   // QUOTE: "this could be done so much better" - U9G
   // COMMENT: Add +1 to a specific bomb on a world
-  const file = require('./api/WCStats.json')
+  const file = fs.readFileSync(path.join(__dirname, '/api/WCStats.json'), 'utf8')
   log.log(`${world}: ${bomb}`)
   file[world][bomb]++
   fs.writeFileSync(path.join(__dirname, '/api/WCStats.json'), JSON.stringify(file, null, 2))

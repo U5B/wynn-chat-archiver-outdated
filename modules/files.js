@@ -6,7 +6,7 @@ const files = {}
 
 files.listOnline = function listOnlinePlayers (world) {
   // COMMENT: read onlinePlayers.json and return the playercount of the argument / world
-  const parsed = JSON.parse(fs.readFileSync(path.join(__dirname, '/api/onlinePlayers.json')))
+  const parsed = JSON.parse(fs.readFileSync(path.join(__dirname, '/api/onlinePlayers.json'), 'utf-8'))
   let playerCountFromFile
   if (!parsed.servers[`${world}`]) {
     playerCountFromFile = '-1'
@@ -17,7 +17,7 @@ files.listOnline = function listOnlinePlayers (world) {
 }
 files.getRandomPlayer = function getRandomPlayer (world) {
   // COMMENT: read onlinePlayers.json and pick a random player
-  const parsed = JSON.parse(fs.readFileSync(path.join(__dirname, '/api/onlinePlayers.json')))
+  const parsed = JSON.parse(fs.readFileSync(path.join(__dirname, '/api/onlinePlayers.json'), 'utf-8'))
   let randomPlayer
   if (!parsed.servers[`${world}`]) {
     randomPlayer = 'null'
@@ -32,7 +32,7 @@ files.getRandomPlayer = function getRandomPlayer (world) {
 files.getBombStats = function getBombStats (world, stats) {
   // QUOTE: "this could be done so much better" - U9G
   // COMMENT: read onlinePlayers.json and pick a random player
-  const parsed = JSON.parse(fs.readFileSync(path.join(__dirname, '/api/WCStats.json')))
+  const parsed = JSON.parse(fs.readFileSync(path.join(__dirname, '/api/WCStats.json'), 'utf-8'))
   const combatXPEmoji = config.combatXPEmoji ? config.combatXPEmoji : '💣'
   const lootEmoji = config.lootEmoji ? config.lootEmoji : '💣'
   const dungeonEmoji = config.dungeonEmoji ? config.dungeonEmoji : '💣'
@@ -76,7 +76,7 @@ files.getBombStats = function getBombStats (world, stats) {
   return worldStats
 }
 files.getBombLeaderboard = function getBombLeaderboard (input) {
-  const parsed = JSON.parse(fs.readFileSync(path.join(__dirname, '/api/WCStats.json')))
+  const parsed = JSON.parse(fs.readFileSync(path.join(__dirname, '/api/WCStats.json'), 'utf-8'))
   function sanitize (args) {
     return {
       Combat_XP: 'Combat XP',
