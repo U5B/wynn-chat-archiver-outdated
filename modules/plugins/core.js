@@ -55,6 +55,7 @@ botcore.compass = async function compass () {
 botcore.onWindowOpen = async function onWindowOpen (window) {
   window.requiresConfirmation = false
   // COMMENT: this is used so that I can technically support any gui in one section of my code
+  const windowParsed = JSON.parse(window)
   const windowText = JSON.parse(window.title).text
   if (windowText === 'Wynncraft Servers') {
     // COMMENT: Hardcoded to click on the recommended server slot - might need to be changed if Wynncraft updates their gui
@@ -69,6 +70,8 @@ botcore.onWindowOpen = async function onWindowOpen (window) {
   } else {
     // COMMENT: debugging purposes, this shouldn't happen unless stuck in the class menu
     log.error(`opened unknown gui with title "${windowText}"`)
+    log.debug(window.slots)
+    log.debug(windowText)
     universal.bot.closeWindow(window)
   }
 }
