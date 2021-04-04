@@ -2,7 +2,7 @@ const fs = require('fs')
 const axios = require('axios')
 const path = require('path')
 const filesCheck = {}
-filesCheck.fileCheck = function filesExist () {
+filesCheck.fileCheck = async function filesExist () {
   fs.mkdirSync(path.join(__dirname, '/api/'), { recursive: true })
   fs.mkdirSync(path.join(__dirname, '/config/'), { recursive: true })
   fs.mkdirSync(path.join(__dirname, '../logs/chat'), { recursive: true })

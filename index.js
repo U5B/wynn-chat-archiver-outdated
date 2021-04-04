@@ -76,6 +76,7 @@ const wcaapi = require('./modules/api')
 const wcaresourcepack = require('./modules/plugins/resourcepack')
 const wcabotend = require('./modules/plugins/botEnd')
 const wcacore = require('./modules/plugins/core')
+// const wcanpc = require('./modules/plugins/npc')
 const discordCommands = require('./modules/discord')
 
 // SECTION: end WCA / begin functions
@@ -193,7 +194,7 @@ async function onMessage (message) {
       // COMMENT: Regex for bombs.
       const bombThankRegex = /Want to thank (.+)\? Click here to thank them!/
       // COMMENT: Regex for bot joining a world.
-      const botJoinRegex = /§r§a(.+)§r§2 has logged into server §r§a(\w+)§r§2 as §r§a(?:a|an) (\w+)§r/
+      const botJoinRegex = /(?:§r§a§r§a§o(.+)§r§2 has logged into server §r§a(\w+)§r§2 as §r§a(?:a|an) (\w+)§r|§r§a(.+)§r§2 has logged into server §r§a(\w+)§r§2 as §r§a(?:a|an) (\w+)§r)/
       // COMMENT: Regex for guild message.
       const guildMessageRegex = /§r§3\[(?:|§r§b(★|★★|★★★|★★★★|★★★★★))§r§3(.*)\]§r§b (.*)§r/
       // COMMENT: Regex for guild members joining.
@@ -214,7 +215,7 @@ async function onMessage (message) {
         }, 2000)
       } else if (botJoinRegex.test(messageMotd)) {
         const matches = botJoinRegex.exec(messageMotd)
-        if (matches[1] === universal.botUsername) {
+        if (matches[1] === universal.botUsername || matches[1] === universal.botNickedUsername) {
           const [, username, world, wynnclass] = matches
           wcacore.onBotJoin(username, world, wynnclass)
           // logGuildJoinToDiscord(message, username, world, wynnclass)
@@ -300,7 +301,12 @@ async function runDiscord (message) {
   if (cmd && discordCommands.checkPermissions(cmd, message)) {
     cmd.execute(message, args, { bot: universal.bot, color, simplediscord, log, fileCheck, wcabomb, wcaguild, wcachat, wcaapi, universal, wcaresourcepack, wcabotend, wcacore })
   } else {
-    message.channel.send('no permission / unknown command')
+    switch (command) {
+      default: {
+        message.channel.send('no permission / unknown command')
+        break
+      }
+    }
   }
 }
 

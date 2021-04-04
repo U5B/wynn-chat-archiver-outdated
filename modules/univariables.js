@@ -1,6 +1,5 @@
 module.exports = {
   bot: null,
-  // nickUsername: '',
   disconnected: false,
   onWynncraft: false,
   onAWorld: false,
@@ -9,6 +8,7 @@ module.exports = {
   compassCheck: false,
   botUsername: undefined,
   realUsername: undefined,
+  botNickedUsername: undefined,
   cancelCompassTimer: undefined,
   cancelLoginTimer: undefined,
   hubTimer: undefined,

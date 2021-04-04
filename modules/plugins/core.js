@@ -4,15 +4,15 @@ const log = require('../logging')
 const simplediscord = require('../simplediscord')
 const { sleep } = require('../../index')
 
-const botcore = {}
-botcore.hub = function hub (message) {
+const wcacore = {}
+wcacore.hub = function hub (message) {
   if (universal.onAWorld === true && universal.resourcePackLoading === false) {
     // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.hubRestartMessage} [${message}] <@!${config.masterDiscordUser}>`)
     simplediscord.sendTime(config.statusChannel, `${config.hubRestartMessage} [${message}] <@!${config.masterDiscordUser}>`)
     universal.bot.chat('/hub')
   }
 }
-botcore.compass = async function compass () {
+wcacore.compass = async function compass () {
   if (universal.compassCheck) {
     await sleep(4000)
   } else {
@@ -52,10 +52,9 @@ botcore.compass = async function compass () {
   //  bot.setQuickBarSlot(7)
   // }
 }
-botcore.onWindowOpen = async function onWindowOpen (window) {
+wcacore.onWindowOpen = async function onWindowOpen (window) {
   window.requiresConfirmation = false
   // COMMENT: this is used so that I can technically support any gui in one section of my code
-  const windowParsed = JSON.parse(window)
   const windowText = JSON.parse(window.title).text
   if (windowText === 'Wynncraft Servers') {
     // COMMENT: Hardcoded to click on the recommended server slot - might need to be changed if Wynncraft updates their gui
@@ -63,10 +62,15 @@ botcore.onWindowOpen = async function onWindowOpen (window) {
     await universal.bot.clickWindow(13, 0, 0)
     universal.compassCheck = true
     log.log('Clicked recommended slot.')
+  } else if (windowText === 'Go to house') {
+    await sleep(500)
+    await universal.bot.clickWindow(11, 0, 0)
   } else if (windowText === '§8§lSelect a Class') {
     log.error(`somehow in class menu "${windowText}" going to hub - use /toggle autojoin`)
+    log.debug(window.slots)
+    await sleep(500)
     universal.bot.closeWindow(window)
-    botcore.hub('Class Menu')
+    wcacore.hub('Class Menu')
   } else {
     // COMMENT: debugging purposes, this shouldn't happen unless stuck in the class menu
     log.error(`opened unknown gui with title "${windowText}"`)
@@ -75,13 +79,17 @@ botcore.onWindowOpen = async function onWindowOpen (window) {
     universal.bot.closeWindow(window)
   }
 }
-botcore.chatLog = async function chatLog (message, messageString, excludeSpam) {
+wcacore.chatLog = async function chatLog (message, messageString, excludeSpam) {
   const jsonString = JSON.stringify(message.json)
   log.verbose(jsonString)
   // COMMENT: Champion Nickname detector - used to get the real username of the bomb thrower and guild messages
   if (message.json.extra) {
     for (let i = 0; i < message.json.extra.length; i++) {
-      if (message.json?.extra[i].extra?.[0]?.hoverEvent?.value?.[1]?.text === '\'s real username is ') {
+      // check if the nicked username is the bot
+      if (message.json?.extra[i].extra?.[0]?.hoverEvent?.value?.[2]?.text === universal.botUsername && message.json?.extra[i].extra?.[0]?.hoverEvent?.value?.[1]?.text === '\'s real username is ') {
+        universal.botNickedUsername = message.json.extra[i]?.extra?.[0]?.hoverEvent?.value?.[0]?.text
+        universal.realUsername = message.json.extra[i]?.extra?.[0]?.hoverEvent?.value?.[0]?.text
+      } else if (message.json?.extra[i].extra?.[0]?.hoverEvent?.value?.[1]?.text === '\'s real username is ') {
         universal.realUsername = message.json.extra[i]?.extra?.[0]?.hoverEvent?.value?.[2]?.text
         // nickUsername = message.json?.extra[i].extra?.[0]?.hoverEvent?.value?.[0]?.text
       }
@@ -89,7 +97,7 @@ botcore.chatLog = async function chatLog (message, messageString, excludeSpam) {
   }
   if (!excludeSpam.test(messageString)) log.chat(message.toMotd())
 }
-botcore.onBotJoin = async function onBotJoin (username, world, wynnclass) {
+wcacore.onBotJoin = async function onBotJoin (username, world, wynnclass) {
   // COMMENT: Your now on a world - you have stopped loading resource pack lol
   universal.onAWorld = true
   universal.resourcePackLoading = false
@@ -100,12 +108,12 @@ botcore.onBotJoin = async function onBotJoin (username, world, wynnclass) {
   simplediscord.sendTime(config.statusChannel, `${config.worldConnectMessage}`)
   simplediscord.status() // COMMENT: check discord status
 }
-botcore.lobbyError = async function lobbyError (reason) {
+wcacore.lobbyError = async function lobbyError (reason) {
   if (reason == null) reason = ' '
   if (universal.onAWorld) {
-    botcore.hub(reason)
+    wcacore.hub(reason)
   } else {
-    botcore.compass()
+    wcacore.compass()
   }
 }
-module.exports = botcore
+module.exports = wcacore
