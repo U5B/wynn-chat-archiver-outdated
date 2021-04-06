@@ -7,11 +7,11 @@ module.exports = {
   allowedRoles: [config.masterDiscordRole, config.trustedDiscordRole],
   allowedChannels: [config.commandChannel],
   execute (message, args, customs) {
-    if (customs.universal.onAWorld === true) {
+    if (customs.universal.onAWorld) {
       message.channel.send('fail: already on a world')
       return
     }
-    if (customs.universal.onWynncraft === false) {
+    if (!customs.universal.onWynncraft) {
       message.channel.send('fail: offline')
       return
     }

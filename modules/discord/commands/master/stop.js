@@ -7,7 +7,7 @@ module.exports = {
   allowedRoles: [config.masterDiscordRole, config.trustedDiscordRole],
   allowedChannels: [config.commandChannel],
   execute (message, args, customs) {
-    if (customs.universal.onWynncraft === false) {
+    if (!customs.universal.onWynncraft) {
       message.channel.send(`Already offline, type ${config.prefix}start to connect tp Wynncraft.`)
       return
     }

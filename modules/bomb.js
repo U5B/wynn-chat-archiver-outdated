@@ -1,9 +1,7 @@
 const config = require('./config/config.json')
 const { client } = require('../index.js')
 const log = require('./logging.js')
-const fileCheck = require('./files.js')
-const fs = require('fs')
-const path = require('path')
+const files = require('./files.js')
 const Timer = require('easytimer.js').Timer
 const bomb = {}
 
@@ -12,7 +10,7 @@ bomb.logBomb = function logBombToDiscord (fullMessage, username, bomb, world, ti
   log.log(`${bomb} bomb logged`)
   const bombMessagePrefix = `[${new Date(Date.now()).toLocaleTimeString('en-US')}]` + ''
   const bombMessageSuffix = `**${world}** by \`${username}\``
-  const playerCount = fileCheck.listOnline(world)
+  const playerCount = files.listOnline(world)
   // COMMENT: adjust this number and the number in bombCountDown() to the max playercount
   const playerCountMax = '40'
   // COMMENT: Sort the bombs
@@ -32,7 +30,6 @@ bomb.logBomb = function logBombToDiscord (fullMessage, username, bomb, world, ti
     client.guilds.cache.get(config.guildid).channels.cache.get(bombChannel).send(sentBombMessage + timerMessage)
       .then(msg => {
         bombCountDown(msg, sentBombMessage, bombTime, world, playerCountMax)
-        writeBombStats(world, bomb)
       })
   } else if (bomb === 'Dungeon') {
     let bombTime
@@ -49,7 +46,6 @@ bomb.logBomb = function logBombToDiscord (fullMessage, username, bomb, world, ti
     client.guilds.cache.get(config.guildid).channels.cache.get(bombChannel).send(sentBombMessage + timerMessage)
       .then(msg => {
         bombCountDown(msg, sentBombMessage, bombTime, world, playerCountMax)
-        writeBombStats(world, bomb)
       })
   } else if (bomb === 'Loot') {
     let bombTime
@@ -66,7 +62,6 @@ bomb.logBomb = function logBombToDiscord (fullMessage, username, bomb, world, ti
     client.guilds.cache.get(config.guildid).channels.cache.get(bombChannel).send(sentBombMessage + timerMessage)
       .then(msg => {
         bombCountDown(msg, sentBombMessage, bombTime, world, playerCountMax)
-        writeBombStats(world, bomb)
       })
   } else if (bomb === 'Profession Speed') {
     let bombTime
@@ -83,7 +78,6 @@ bomb.logBomb = function logBombToDiscord (fullMessage, username, bomb, world, ti
     client.guilds.cache.get(config.guildid).channels.cache.get(bombChannel).send(sentBombMessage + timerMessage)
       .then(msg => {
         bombCountDown(msg, sentBombMessage, bombTime, world, playerCountMax)
-        writeBombStats(world, bomb)
       })
   } else if (bomb === 'Profession XP') {
     let bombTime
@@ -100,13 +94,13 @@ bomb.logBomb = function logBombToDiscord (fullMessage, username, bomb, world, ti
     client.guilds.cache.get(config.guildid).channels.cache.get(bombChannel).send(sentBombMessage + timerMessage)
       .then(msg => {
         bombCountDown(msg, sentBombMessage, bombTime, world, playerCountMax)
-        writeBombStats(world, bomb)
       })
   } else {
     // COMMENT: If it doesn't match: (Combat XP, Loot, Dungeon, Profession Speed, Profession XP) then log the error
     log.error(bomb)
   }
   client.guilds.cache.get(config.guildid).channels.cache.get(config.logBombChannel).send(`[${new Date(Date.now()).toLocaleTimeString('en-US')}] ${fullMessage}`)
+  files.writeBombStats(world, bomb)
 }
 
 function bombCountDown (msg, message, duration, world, playerCountMax) {
@@ -134,16 +128,8 @@ function bombCountDown (msg, message, duration, world, playerCountMax) {
     if (timeLeftMinutes === 0) {
       return
     }
-    const playerCount = fileCheck.listOnline(world)
+    const playerCount = files.listOnline(world)
     msg.edit(message + ` (**${timeLeftMinutes} minutes** left) **[${playerCount}/${playerCountMax}]**`)
   })
-}
-function writeBombStats (world, bomb) {
-  // QUOTE: "this could be done so much better" - U9G
-  // COMMENT: Add +1 to a specific bomb on a world
-  const file = JSON.parse(fs.readFileSync(path.join(__dirname, '/api/WCStats.json'), 'utf8'))
-  log.log(`${world}: ${bomb}`)
-  file[world][bomb]++
-  fs.writeFileSync(path.join(__dirname, '/api/WCStats.json'), JSON.stringify(file, null, 2))
 }
 module.exports = bomb

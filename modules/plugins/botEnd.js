@@ -45,8 +45,8 @@ botend.onKick = async function onKick (reason, loggedIn) {
   }
 }
 botend.onEnd = async function onEnd (reason) {
-  if (end === true) return
-  if (end === false) end = true
+  if (end) return
+  if (!end) end = true
   if (reason == null) {
     reason = 'user_disconnect'
   } else {
@@ -60,7 +60,7 @@ botend.onEnd = async function onEnd (reason) {
   clearInterval(universal.cancelCompassTimer)
   // clearInterval(npcInterval)
   log.error(`DisconnectReason: "${reason}" || DisconnectState: "${universal.disconnected}"`)
-  if (universal.disconnected === false) {
+  if (!universal.disconnected) {
     // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.kickMessage} \`Disconnected...\` <@!${config.masterDiscordUser}>`)
     simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`Disconnected...\` <@!${config.masterDiscordUser}>`)
     log.warn('Disconnected. Attempting to reconnect...')

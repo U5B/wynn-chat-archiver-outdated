@@ -1,4 +1,5 @@
 const config = require('./config/config.json')
+const log = require('./logging')
 const fs = require('fs')
 const path = require('path')
 
@@ -96,5 +97,13 @@ files.getBombLeaderboard = function getBombLeaderboard (input) {
     .map((elem, ix) => `${ix + 1}. [${elem[0]}] ${elem[1][stats]}`)
     .slice(0, 10)
     .join('\n')
+}
+files.writeBombStats = function writeBombStats (world, bomb) {
+  // QUOTE: "this could be done so much better" - U9G
+  // COMMENT: Add +1 to a specific bomb on a world
+  const file = JSON.parse(fs.readFileSync(path.join(__dirname, '/api/WCStats.json'), 'utf8'))
+  log.log(`${world}: ${bomb}`)
+  file[world][bomb]++
+  fs.writeFileSync(path.join(__dirname, '/api/WCStats.json'), JSON.stringify(file, null, 2))
 }
 module.exports = files

@@ -7,7 +7,7 @@ module.exports = {
   allowedRoles: [config.masterDiscordRole, config.trustedDiscordRole],
   allowedChannels: [config.commandChannel],
   execute (message, args, customs) {
-    if (customs.universal.onWynncraft === true) {
+    if (customs.universal.onWynncraft) {
       message.channel.send(`Already online, type ${config.prefix}stop to quit Wynncraft.`)
       return
     }

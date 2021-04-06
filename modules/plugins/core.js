@@ -5,14 +5,15 @@ const simplediscord = require('../simplediscord')
 const { sleep } = require('../../index')
 
 const wcacore = {}
-wcacore.hub = function hub (message) {
-  if (universal.onAWorld === true && universal.resourcePackLoading === false) {
+wcacore.hub = function hub (message, force) {
+  if (universal.onAWorld || force) {
     // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.hubRestartMessage} [${message}] <@!${config.masterDiscordUser}>`)
     simplediscord.sendTime(config.statusChannel, `${config.hubRestartMessage} [${message}] <@!${config.masterDiscordUser}>`)
     universal.bot.chat('/hub')
   }
 }
-wcacore.compass = async function compass () {
+wcacore.compass = async function compass (reason) {
+  if (!reason) reason = ''
   if (universal.compassCheck) {
     await sleep(4000)
   } else {
@@ -35,14 +36,14 @@ wcacore.compass = async function compass () {
     async function compassActivate () {
       log.log('Clicking compass...')
       // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.worldReconnectMessage} [Lobby]`)
-      simplediscord.sendTime(config.statusChannel, `${config.worldReconnectMessage} [Lobby]`)
+      simplediscord.sendTime(config.statusChannel, `${config.worldReconnectMessage} [Lobby] [${reason}]`)
       universal.bot.activateItem()
     }
     if (itemHeld === 'compass') {
       // COMMENT: retry on lobby or restart entire bot if hub is broken
       await compassActivate()
       universal.cancelCompassTimer = setInterval(() => {
-        if (universal.onWynncraft === true && universal.onAWorld === false && universal.resourcePackLoading === false) {
+        if (universal.onWynncraft && !universal.onAWorld && !universal.resourcePackLoading) {
           compassActivate()
         }
       }, 10000)
@@ -88,7 +89,7 @@ wcacore.chatLog = async function chatLog (message, messageString, excludeSpam) {
       // check if the nicked username is the bot
       if (message.json?.extra[i].extra?.[0]?.hoverEvent?.value?.[2]?.text === universal.botUsername && message.json?.extra[i].extra?.[0]?.hoverEvent?.value?.[1]?.text === '\'s real username is ') {
         universal.botNickedUsername = message.json.extra[i]?.extra?.[0]?.hoverEvent?.value?.[0]?.text
-        universal.realUsername = message.json.extra[i]?.extra?.[0]?.hoverEvent?.value?.[0]?.text
+        universal.realUsername = message.json.extra[i]?.extra?.[0]?.hoverEvent?.value?.[2]?.text
       } else if (message.json?.extra[i].extra?.[0]?.hoverEvent?.value?.[1]?.text === '\'s real username is ') {
         universal.realUsername = message.json.extra[i]?.extra?.[0]?.hoverEvent?.value?.[2]?.text
         // nickUsername = message.json?.extra[i].extra?.[0]?.hoverEvent?.value?.[0]?.text
@@ -111,9 +112,9 @@ wcacore.onBotJoin = async function onBotJoin (username, world, wynnclass) {
 wcacore.lobbyError = async function lobbyError (reason) {
   if (reason == null) reason = ' '
   if (universal.onAWorld) {
-    wcacore.hub(reason)
+    wcacore.hub(reason, true)
   } else {
-    wcacore.compass()
+    wcacore.compass(reason)
   }
 }
 module.exports = wcacore

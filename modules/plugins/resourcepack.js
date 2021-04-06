@@ -23,6 +23,9 @@ resourcepack.resourcePackAccept = function () {
       result: 0
     })
     log.log('Wynnpack accepted.')
+    // COMMENT: Your now on a world - you have stopped loading resource pack lol
+    // COMMENT: fire this in-case the online indicator doesn't fire ;-;
+    universal.onAWorld = true
     universal.resourcePackLoading = false
   }
   universal.bot._client.once('resource_pack_send', resourcePackSendListener)

@@ -194,7 +194,7 @@ async function onMessage (message) {
       // COMMENT: Regex for bombs.
       const bombThankRegex = /Want to thank (.+)\? Click here to thank them!/
       // COMMENT: Regex for bot joining a world.
-      const botJoinRegex = /(?:§r§a§r§a§o(.+)§r§2 has logged into server §r§a(\w+)§r§2 as §r§a(?:a|an) (\w+)§r|§r§a(.+)§r§2 has logged into server §r§a(\w+)§r§2 as §r§a(?:a|an) (\w+)§r)/
+      const botJoinRegex = /§r§a(?:|§r§a§o)(\w+)§r§2 has logged into server §r§a(WC\d+)§r§2 as §r§a(?:a|an) (\w+)§r/
       // COMMENT: Regex for guild message.
       const guildMessageRegex = /§r§3\[(?:|§r§b(★|★★|★★★|★★★★|★★★★★))§r§3(.*)\]§r§b (.*)§r/
       // COMMENT: Regex for guild members joining.
@@ -220,7 +220,7 @@ async function onMessage (message) {
           wcacore.onBotJoin(username, world, wynnclass)
           // logGuildJoinToDiscord(message, username, world, wynnclass)
         }
-      } else if (config.guildTracker === true) {
+      } else if (config.guildTracker) {
         if (guildMessageRegex.test(messageMotd)) {
           const matches = guildMessageRegex.exec(messageMotd)
           if (matches[2] === 'INFO') return
@@ -314,13 +314,13 @@ function exitHandler () {
   universal.bot.on('kicked', wcabotend.onKick)
   universal.bot.on('end', wcabotend.onEnd)
   universal.bot.on('error', function onErrorFunctionListener (err) { log.error(err) })
-  process.once('SIGINT', function onSIGINT () {
-    wcabotend.onKick('end_process')
-  })
-  process.once('SIGHUP', function onSIGHUP () {
-    wcabotend.onKick('end_process')
-  })
-  process.once('SIGTERM', function onSIGTERM () {
-    wcabotend.onKick('end_process')
-  })
 }
+process.once('SIGINT', function onSIGINT () {
+  wcabotend.onKick('end_process')
+})
+process.once('SIGHUP', function onSIGHUP () {
+  wcabotend.onKick('end_process')
+})
+process.once('SIGTERM', function onSIGTERM () {
+  wcabotend.onKick('end_process')
+})

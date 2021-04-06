@@ -49,7 +49,7 @@ const log = {
     const text = util.format.apply(this, arguments) + '\n'
     const chat = util.format.apply(this, arguments)
     ds.write(`[${new Date(Date.now()).toLocaleString('en-US')}]` + ' [LOG] ' + text) // COMMENT: write to log formatted
-    if (config.debug === true) {
+    if (config.debug) {
       ls.write(`[${new Date(Date.now()).toLocaleString('en-US')}]` + ' [LOG] ' + color.stripthes(text)) // COMMENT: write to log unformatted
       debug.log(`[${new Date(Date.now()).toLocaleString('en-US')}]` + ' ' + chat)
       // process.stdout.write(`[${new Date(Date.now()).toLocaleString('en-US')}]` + ' [LOG] ' + text)
@@ -75,7 +75,7 @@ const log = {
     const text = util.format.apply(this, arguments) + '\n'
     const chat = util.format.apply(this, arguments)
     ds.write(`[${new Date(Date.now()).toLocaleString('en-US')}]` + ' [DBUG] ' + text) // COMMENT: write to log formatted
-    if (config.debug === true) {
+    if (config.debug) {
       debug.debug(`[${new Date(Date.now()).toLocaleString('en-US')}]` + ' ' + chat)
       // process.stdout.write(`[${new Date(Date.now()).toLocaleString('en-US')}]` + ' [DEBUG] ' + text)
     }
