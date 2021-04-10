@@ -4,8 +4,6 @@ const log = require('../logging')
 const simplediscord = require('../simplediscord')
 const { client, sleep, loginBot } = require('../../index')
 
-let end = false
-
 const botend = {}
 botend.onKick = async function onKick (reason, loggedIn) {
   universal.disconnected = true
@@ -39,14 +37,13 @@ botend.onKick = async function onKick (reason, loggedIn) {
     simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
   } else if (kickReason === '{"text":"Could not connect to a default or fallback server, please try again later: io.netty.channel.ConnectTimeoutException","color":"red"}') {
     universal.disconnected = false
+    simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
   } else {
     // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
     simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
   }
 }
 botend.onEnd = async function onEnd (reason) {
-  if (end) return
-  if (!end) end = true
   if (reason == null) {
     reason = 'user_disconnect'
   } else {

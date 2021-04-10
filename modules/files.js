@@ -2,24 +2,23 @@ const config = require('./config/config.json')
 const log = require('./logging')
 const fs = require('fs')
 const path = require('path')
-
 const files = {}
 
 files.listOnline = function listOnlinePlayers (world) {
   // COMMENT: read onlinePlayers.json and return the playercount of the argument / world
+  let playerCountResponse = -1
   const parsed = JSON.parse(fs.readFileSync(path.join(__dirname, '/api/onlinePlayers.json'), 'utf-8'))
-  let playerCountFromFile
   if (!parsed.servers[`${world}`]) {
-    playerCountFromFile = '-1'
+    playerCountResponse = '-1'
   } else {
-    playerCountFromFile = Object.keys(parsed.servers[`${world}`].players).length
+    playerCountResponse = Object.keys(parsed.servers[`${world}`].players).length
   }
-  return playerCountFromFile
+  return playerCountResponse
 }
 files.getRandomPlayer = function getRandomPlayer (world) {
   // COMMENT: read onlinePlayers.json and pick a random player
   const parsed = JSON.parse(fs.readFileSync(path.join(__dirname, '/api/onlinePlayers.json'), 'utf-8'))
-  let randomPlayer
+  let randomPlayer = 'null'
   if (!parsed.servers[`${world}`]) {
     randomPlayer = 'null'
   } else {
