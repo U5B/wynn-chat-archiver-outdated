@@ -1,24 +1,24 @@
 const config = require('./config/config.json')
+const universal = require('./univariables.js')
+const api = require('./api.js')
 const log = require('./logging')
-const fs = require('fs')
-const path = require('path')
+// const fs = require('fs')
+// const path = require('path')
 const files = {}
 
 files.listOnline = function listOnlinePlayers (world) {
   // COMMENT: read onlinePlayers.json and return the playercount of the argument / world
   let playerCountResponse = -1
-  const parsed = JSON.parse(fs.readFileSync(path.join(__dirname, '/api/onlinePlayers.json'), 'utf-8'))
-  if (!parsed.servers[`${world}`]) {
-    playerCountResponse = '-1'
-  } else {
+  const parsed = universal.api.onlinePlayers // JSON.parse(fs.readFileSync(path.join(__dirname, '/api/onlinePlayers.json'), 'utf-8'))
+  if (parsed.servers[`${world}`]) {
     playerCountResponse = Object.keys(parsed.servers[`${world}`].players).length
   }
   return playerCountResponse
 }
 files.getRandomPlayer = function getRandomPlayer (world) {
   // COMMENT: read onlinePlayers.json and pick a random player
-  const parsed = JSON.parse(fs.readFileSync(path.join(__dirname, '/api/onlinePlayers.json'), 'utf-8'))
   let randomPlayer = 'null'
+  const parsed = universal.api.onlinePlayers // JSON.parse(fs.readFileSync(path.join(__dirname, '/api/onlinePlayers.json'), 'utf-8'))
   if (!parsed.servers[`${world}`]) {
     randomPlayer = 'null'
   } else {
@@ -29,10 +29,22 @@ files.getRandomPlayer = function getRandomPlayer (world) {
   }
   return randomPlayer
 }
-files.getBombStats = function getBombStats (world, stats) {
+function sanitize (args) {
+  return {
+    Combat_XP: 'Combat XP',
+    Loot: 'Loot',
+    Dungeon: 'Dungeon',
+    Profession_Speed: 'Profession Speed',
+    Profession_XP: 'Profession XP',
+    'Combat XP': 'Combat XP',
+    'Profession Speed': 'Profession Speed',
+    'Profession XP': 'Profession XP'
+  }[args] ?? null
+}
+files.getBombStats = function getBombStats (world, statsInput) {
   // QUOTE: "this could be done so much better" - U9G
-  // COMMENT: read onlinePlayers.json and pick a random player
-  const parsed = JSON.parse(fs.readFileSync(path.join(__dirname, '/api/WCStats.json'), 'utf-8'))
+  // COMMENT: read WCStats and get some bomb stats
+  const parsed = universal.api.WCStats
   const combatXPEmoji = config.combatXPEmoji ? config.combatXPEmoji : '💣'
   const lootEmoji = config.lootEmoji ? config.lootEmoji : '💣'
   const dungeonEmoji = config.dungeonEmoji ? config.dungeonEmoji : '💣'
@@ -41,30 +53,11 @@ files.getBombStats = function getBombStats (world, stats) {
   let worldStats
   if (!parsed[`${world}`]) {
     worldStats = null
-  } else if (stats) {
-    if (stats === 'Combat_XP') {
-      stats = 'Combat XP'
-      const bombSuffix = `**[${stats} Bomb]:** ${parsed[`${world}`][`${stats}`]}`
-      worldStats = `${combatXPEmoji} ${bombSuffix}`
-    } else if (stats === 'Loot') {
-      stats = 'Loot'
-      const bombSuffix = `**[${stats} Bomb]:** ${parsed[`${world}`][`${stats}`]}`
-      worldStats = `${combatXPEmoji} ${bombSuffix}`
-    } else if (stats === 'Dungeon') {
-      stats = 'Dungeon'
-      const bombSuffix = `**[${stats} Bomb]:** ${parsed[`${world}`][`${stats}`]}`
-      worldStats = `${combatXPEmoji} ${bombSuffix}`
-    } else if (stats === 'Profession_Speed') {
-      stats = 'Profession Speed'
-      const bombSuffix = `**[${stats} Bomb]:** ${parsed[`${world}`][`${stats}`]}`
-      worldStats = `${combatXPEmoji} ${bombSuffix}`
-    } else if (stats === 'Profession_XP') {
-      stats = 'Profession XP'
-      const bombSuffix = `**[${stats} Bomb]:** ${parsed[`${world}`][`${stats}`]}`
-      worldStats = `${combatXPEmoji} ${bombSuffix}`
-    } else {
-      worldStats = null
-    }
+  } else if (statsInput) {
+    const stats = sanitize(statsInput)
+    if (stats == null) return
+    const bombSuffix = `**[${stats} Bomb]:** ${parsed[`${world}`][`${stats}`]}`
+    worldStats = `${combatXPEmoji} ${bombSuffix}`
   } else {
     const combatXP = `${combatXPEmoji} **[Combat XP Bomb]:** ${parsed[`${world}`]['Combat XP']}`
     const loot = `${lootEmoji} **[Loot Bomb]:** ${parsed[`${world}`].Loot}`
@@ -76,19 +69,7 @@ files.getBombStats = function getBombStats (world, stats) {
   return worldStats
 }
 files.getBombLeaderboard = function getBombLeaderboard (input) {
-  const parsed = JSON.parse(fs.readFileSync(path.join(__dirname, '/api/WCStats.json'), 'utf-8'))
-  function sanitize (args) {
-    return {
-      Combat_XP: 'Combat XP',
-      Loot: 'Loot',
-      Dungeon: 'Dungeon',
-      Profession_Speed: 'Profession Speed',
-      Profession_XP: 'Profession XP',
-      'Combat XP': 'Combat XP',
-      'Profession Speed': 'Profession Speed',
-      'Profession XP': 'Profession XP'
-    }[args] ?? null
-  }
+  const parsed = universal.api.WCStats
   const stats = sanitize(input)
   if (stats == null) return null
   return Object.entries(parsed)
@@ -100,9 +81,8 @@ files.getBombLeaderboard = function getBombLeaderboard (input) {
 files.writeBombStats = function writeBombStats (world, bomb) {
   // QUOTE: "this could be done so much better" - U9G
   // COMMENT: Add +1 to a specific bomb on a world
-  const file = JSON.parse(fs.readFileSync(path.join(__dirname, '/api/WCStats.json'), 'utf8'))
   log.log(`${world}: ${bomb}`)
-  file[world][bomb]++
-  fs.writeFileSync(path.join(__dirname, '/api/WCStats.json'), JSON.stringify(file, null, 2))
+  universal.api.WCStats[world][bomb]++
+  api.WCStats.write()
 }
 module.exports = files

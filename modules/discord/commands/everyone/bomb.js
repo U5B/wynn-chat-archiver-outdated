@@ -16,11 +16,24 @@ module.exports = {
       }
       message.channel.send(answer)
     } else if (args[0] === 'lb') {
-      const answer = customs.fileCheck.getBombLeaderboard(args[1])
-      if (answer === null) {
-        message.channel.send('Internal error occurred')
+      let answer
+      if (args[1]) {
+        answer = customs.fileCheck.getBombLeaderboard(args[1])
+        if (answer == null) {
+          message.channel.send('Internal error occurred')
+        } else {
+          message.channel.send(`**${args[1]} Leaderboard:**\n\`\`\`${answer}\`\`\``)
+        }
+      } else {
+        const lbCombatXP = customs.fileCheck.getBombLeaderboard('Combat_XP')
+        const lbDungeon = customs.fileCheck.getBombLeaderboard('Dungeon')
+        const lbLoot = customs.fileCheck.getBombLeaderboard('Loot')
+        const lbProfessionSpeed = customs.fileCheck.getBombLeaderboard('Profession_Speed')
+        const lbProfessionXP = customs.fileCheck.getBombLeaderboard('Profession_XP')
+        if (lbCombatXP || lbDungeon || lbLoot || lbProfessionSpeed || lbProfessionSpeed) {
+          message.channel.send(`**Combat_XP Leaderboard:**\`\`\`${lbCombatXP}\`\`\`**Dungeon Leaderboard:**\`\`\`${lbDungeon}\`\`\`**Loot Leaderboard:**\`\`\`${lbLoot}\`\`\`**Profession_Speed Leaderboard:**\`\`\`${lbProfessionSpeed}\`\`\`**Profession_XP Leaderboard:**\`\`\`${lbProfessionXP}\`\`\``)
+        }
       }
-      message.channel.send(`**${args[1]} Leaderboard:**\n\`\`\`${answer}\`\`\``)
     } else {
       message.channel.send('Internal error occurred')
     }

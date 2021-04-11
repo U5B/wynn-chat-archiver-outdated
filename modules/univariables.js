@@ -1,5 +1,9 @@
 module.exports = {
-  bot: null,
+  api: {
+    onlinePlayers: undefined,
+    WCStats: undefined
+  },
+  bot: undefined,
   disconnected: false,
   onWynncraft: false,
   onAWorld: false,

@@ -82,6 +82,8 @@ const discordCommands = require('./modules/discord')
 // SECTION: end WCA / begin functions
 // TODO: Seperate everything into their own functions
 function init () {
+  wcaapi.WCStats.read()
+  wcaapi.onlinePlayers()
   clearInterval(universal.apiInterval)
   universal.apiInterval = setInterval(() => {
     wcaapi.onlinePlayers()
@@ -152,6 +154,7 @@ function onLogin () {
   universal.currentWorld = 'WC0'
   simplediscord.status(client)// COMMENT: check discord status
   log.warn('Connected.')
+  log.log(universal.api_onlinePlayers)
 }
 
 function onceSpawn () {
@@ -302,6 +305,10 @@ async function runDiscord (message) {
     cmd.execute(message, args, { bot: universal.bot, color, simplediscord, log, fileCheck, wcabomb, wcaguild, wcachat, wcaapi, universal, wcaresourcepack, wcabotend, wcacore })
   } else {
     switch (command) {
+      case 'test': {
+        message.channel.send('wuwuhy')
+        break
+      }
       default: {
         message.channel.send('no permission / unknown command')
         break
