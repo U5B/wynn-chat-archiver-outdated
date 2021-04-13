@@ -71,7 +71,7 @@ wcacore.onWindowOpen = async function onWindowOpen (window) {
     log.debug(window.slots)
     await sleep(500)
     universal.bot.closeWindow(window)
-    wcacore.hub('Class Menu')
+    wcacore.hub('Class Menu', true)
   } else {
     // COMMENT: debugging purposes, this shouldn't happen unless stuck in the class menu
     log.error(`opened unknown gui with title "${windowText}"`)

@@ -7,7 +7,7 @@ module.exports = {
   allowedRoles: [config.masterDiscordRole, config.trustedDiscordRole],
   allowedChannels: [config.commandChannel],
   execute (message, args, customs) {
-    customs.wcacore.hub('Discord')
+    customs.wcacore.hub('Discord', true)
     customs.log.warn('going to hub...')
     message.channel.send('going to hub...')
   }
