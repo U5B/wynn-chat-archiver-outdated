@@ -36,5 +36,7 @@ Feel free to open an PR or issue if something could probably be improved.
 
 Add `if (String(item.name).includes('§')) return` under line 420 `for (const item of packet.data) {` in mineflayer/lib/plugins/entities.js
 
+Use a version above 1.16.2+ since they fixed a bug with firing two respawn events when switching servers. This relys on the login event being fired when switching servers.
+
 
 
