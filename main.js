@@ -11,6 +11,7 @@ const wcaCore = require('./modules/plugins/core')
 const wcaOnMessage = require('./modules/plugins/onMessage')
 const universal = require('./modules/universal')
 const events = require('./modules/plugins/events')
+const wcaNPC = require('./modules/plugins/npc')
 
 module.exports = {
   universal: universal,
@@ -19,6 +20,7 @@ module.exports = {
   log: log,
   files: files,
   wca: {
+    npc: wcaNPC,
     events: events,
     bomb: wcaBomb,
     guild: wcaGuild,
