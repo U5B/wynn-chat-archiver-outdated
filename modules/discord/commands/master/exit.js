@@ -1,4 +1,5 @@
 const config = require('../../../config/config.json')
+const main = require('../../../../main.js')
 
 module.exports = {
   name: 'exit',
@@ -7,7 +8,7 @@ module.exports = {
   allowedRoles: [config.masterDiscordRole, config.trustedDiscordRole],
   allowedChannels: [config.commandChannel],
   execute (message, args, customs) {
-    customs.log.warn('exiting via discord uwu')
+    main.log.warn('exiting via discord uwu')
     message.channel.send('exiting bot process')
     process.emit('SIGINT')
   }

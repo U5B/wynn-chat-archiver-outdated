@@ -11,7 +11,6 @@ module.exports = {
     hub: require('./commands/trusted/hub'),
     start: require('./commands/trusted/start'),
     stream: require('./commands/trusted/stream'),
-    tps: require('./commands/master/tps'),
     // COMMENT: master role
     stop: require('./commands/master/stop'),
     exit: require('./commands/master/exit'),

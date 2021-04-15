@@ -1,5 +1,5 @@
 const config = require('../config/config.json')
-const universal = require('../univariables.js')
+const universal = require('../universal.js')
 const log = require('../logging.js')
 const simplediscord = require('../simplediscord.js')
 
@@ -9,25 +9,25 @@ resourcepack.resourcePackAccept = function () {
   log.warn('Connected && Loading Resource Pack...')
   // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.worldReconnectMessage}`)
   simplediscord.sendTime(config.statusChannel, `${config.worldReconnectMessage} [Resource Pack]`)
-  universal.compassCheck = false
+  universal.state.compassCheck = false
   // COMMENT: resoucePackLoading is used for waiting for the resource pack to load
-  universal.resourcePackLoading = true
-  if (resourcePackSendListener) universal.bot.removeListener('resource_pack_send', resourcePackSendListener)
+  universal.state.resourcePackLoading = true
+  if (resourcePackSendListener) universal.droid.removeListener('resource_pack_send', resourcePackSendListener)
   simplediscord.status() // COMMENT: check discord status
   // COMMENT: Accept the resource pack on login: Thanks mat#6207 for giving the code
   resourcePackSendListener = function onceResourcePackSend () {
-    universal.bot._client.write('resource_pack_receive', {
+    universal.droid._client.write('resource_pack_receive', {
       result: 3
     })
-    universal.bot._client.write('resource_pack_receive', {
+    universal.droid._client.write('resource_pack_receive', {
       result: 0
     })
     log.log('Wynnpack accepted.')
     // COMMENT: Your now on a world - you have stopped loading resource pack lol
     // COMMENT: fire this in-case the online indicator doesn't fire ;-;
-    universal.onAWorld = true
-    universal.resourcePackLoading = false
+    universal.state.onAWorld = true
+    universal.state.resourcePackLoading = false
   }
-  universal.bot._client.once('resource_pack_send', resourcePackSendListener)
+  universal.droid._client.once('resource_pack_send', resourcePackSendListener)
 }
 module.exports = resourcepack

@@ -1,5 +1,5 @@
 const config = require('./config/config.json')
-const universal = require('./univariables.js')
+const universal = require('./universal.js')
 const api = require('./api.js')
 const log = require('./logging')
 // const fs = require('fs')

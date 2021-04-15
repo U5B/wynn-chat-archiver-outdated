@@ -1,4 +1,5 @@
 const config = require('../../../config/config.json')
+const main = require('../../../../main.js')
 
 module.exports = {
   name: 'compass',
@@ -7,16 +8,16 @@ module.exports = {
   allowedRoles: [config.masterDiscordRole, config.trustedDiscordRole],
   allowedChannels: [config.commandChannel],
   execute (message, args, customs) {
-    if (customs.universal.onAWorld) {
+    if (main.universal.state.onAWorld) {
       message.channel.send('fail: already on a world')
       return
     }
-    if (!customs.universal.onWynncraft) {
+    if (!main.universal.state.onWynncraft) {
       message.channel.send('fail: offline')
       return
     }
-    customs.wcacore.compass()
-    customs.log.warn('executing compass script')
+    main.wca.core.compass()
+    main.log.warn('executing compass script')
     message.channel.send('executing compass script')
   }
 }

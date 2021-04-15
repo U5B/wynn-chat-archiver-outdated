@@ -1,4 +1,5 @@
 const config = require('../../../config/config.json')
+const main = require('../../../../main.js')
 
 module.exports = {
   name: 'sudo',
@@ -8,8 +9,8 @@ module.exports = {
   allowedChannels: [config.commandChannel],
   execute (message, args, customs) {
     const sudoMessage = args.join(' ')
-    customs.log.warn(`executed "${sudoMessage}"`)
-    customs.bot.chat(sudoMessage)
+    main.log.warn(`executed "${sudoMessage}"`)
+    main.universal.droid.chat(sudoMessage)
     message.channel.send(`executed \`${sudoMessage}\``)
   }
 }

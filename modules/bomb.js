@@ -3,9 +3,9 @@ const { client } = require('../index.js')
 const log = require('./logging.js')
 const files = require('./files.js')
 const Timer = require('easytimer.js').Timer
-const bomb = {}
+const wcabomb = {}
 
-bomb.logBomb = function logBombToDiscord (fullMessage, username, bomb, world, timeLeft) {
+wcabomb.logBomb = function logBombToDiscord (fullMessage, username, bomb, world, timeLeft) {
   // COMMENT: track some explosions
   log.log(`${bomb} bomb logged`)
   const bombMessagePrefix = `[${new Date(Date.now()).toLocaleTimeString('en-US')}]` + ''
@@ -132,4 +132,5 @@ function bombCountDown (msg, message, duration, world, playerCountMax) {
     msg.edit(message + ` (**${timeLeftMinutes} minutes** left) **[${playerCount}/${playerCountMax}]**`)
   })
 }
-module.exports = bomb
+
+module.exports = wcabomb

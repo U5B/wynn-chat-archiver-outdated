@@ -1,18 +1,19 @@
 const config = require('./config/config.json')
 const { client } = require('../index.js')
-const universal = require('./univariables.js')
+const universal = require('./universal.js')
 const log = require('./logging.js')
 
-function sendTime (channel, message) {
+const simplediscord = {}
+simplediscord.sendTime = function sendTime (channel, message) {
   client.guilds.cache.get(config.guildid).channels.cache.get(channel).send(`[${new Date(Date.now()).toLocaleTimeString('en-US')}] ${message}`)
 }
-function sendDate (channel, message) {
+simplediscord.sendDate = function sendDate (channel, message) {
   client.guilds.cache.get(config.guildid).channels.cache.get(channel).send(`[${new Date(Date.now()).toLocaleString('en-US')}] ${message}`)
 }
-function status (status) {
-  const onWynncraft = universal.onWynncraft
-  const onAWorld = universal.onAWorld
-  const resourcePackLoading = universal.resourcePackLoading
+simplediscord.status = function status (status) {
+  const onWynncraft = universal.state.onWynncraft
+  const onAWorld = universal.state.onAWorld
+  const resourcePackLoading = universal.state.resourcePackLoading
   const setPresence = (stat, active) => {
     client.user.setPresence({
       status: stat,
@@ -38,4 +39,4 @@ function status (status) {
   }
 }
 
-module.exports = { sendDate, sendTime, status }
+module.exports = simplediscord

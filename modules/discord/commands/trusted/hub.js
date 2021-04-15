@@ -1,4 +1,5 @@
 const config = require('../../../config/config.json')
+const main = require('../../../../main.js')
 
 module.exports = {
   name: 'hub',
@@ -7,8 +8,8 @@ module.exports = {
   allowedRoles: [config.masterDiscordRole, config.trustedDiscordRole],
   allowedChannels: [config.commandChannel],
   execute (message, args, customs) {
-    customs.wcacore.hub('Discord', true)
-    customs.log.warn('going to hub...')
+    main.wca.core.hub('Discord', true)
+    main.log.warn('going to hub...')
     message.channel.send('going to hub...')
   }
 }

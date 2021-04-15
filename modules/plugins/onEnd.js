@@ -1,12 +1,12 @@
 const config = require('../config/config')
-const universal = require('../univariables')
+const universal = require('../universal')
 const log = require('../logging')
 const simplediscord = require('../simplediscord')
-const { client, sleep, loginBot } = require('../../index')
+const { client, sleep, login } = require('../../index')
 
 const botend = {}
-botend.onKick = async function onKick (reason, loggedIn) {
-  universal.disconnected = true
+botend.onKick = async function kick (reason, loggedIn) {
+  universal.state.disconnected = true
   let kickReason
   const reasonType = typeof reason
   if (reasonType === 'string') {
@@ -16,10 +16,10 @@ botend.onKick = async function onKick (reason, loggedIn) {
   }
   log.error(`KickReason: "${kickReason}" || LoginState: "${loggedIn}"`)
   if (kickReason === 'end_discord') {
-    universal.bot.quit()
+    universal.droid.quit()
     log.warn('Disconnected due to discord.')
   } else if (kickReason === 'end_process') {
-    if (universal.bot != null) universal.bot.quit()
+    if (universal.droid != null) universal.droid.quit()
     log.warn('Disconnected due to process dying.')
     // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(nowDate + ` ${config.processEndMessage} <@!${config.masterDiscordUser}>`)
     simplediscord.sendDate(config.statusChannel, `${config.processEndMessage} <@!${config.masterDiscordUser}>`)
@@ -33,31 +33,31 @@ botend.onKick = async function onKick (reason, loggedIn) {
     simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`Server Restart\` <@!${config.masterDiscordUser}>`)
     botend.onRestart()
   } else if (kickReason === '{"text":"ReadTimeoutException : null"}') {
-    universal.disconnected = false
+    universal.state.disconnected = false
     simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
   } else if (kickReason === '{"text":"Could not connect to a default or fallback server, please try again later: io.netty.channel.ConnectTimeoutException","color":"red"}') {
-    universal.disconnected = false
+    universal.state.disconnected = false
     simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
   } else {
     // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
     simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
   }
 }
-botend.onEnd = async function onEnd (reason) {
+botend.onEnd = async function end (reason) {
   if (reason == null) {
     reason = 'user_disconnect'
   } else {
-    universal.bot.quit()
+    universal.droid.quit()
   }
   // COMMENT: Shut all the bot things down when kicked or disconnected
-  universal.onWynncraft = false
-  universal.onAWorld = false
-  universal.resourcePackLoading = false
+  universal.state.onWynncraft = false
+  universal.state.onAWorld = false
+  universal.state.resourcePackLoading = false
   simplediscord.status() // COMMENT: check discord status // COMMENT: check discord status
-  clearInterval(universal.cancelCompassTimer)
+  clearInterval(universal.timer.cancelCompassTimer)
   // clearInterval(npcInterval)
-  log.error(`DisconnectReason: "${reason}" || DisconnectState: "${universal.disconnected}"`)
-  if (!universal.disconnected) {
+  log.error(`DisconnectReason: "${reason}" || DisconnectState: "${universal.state.disconnected}"`)
+  if (!universal.state.disconnected) {
     // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.kickMessage} \`Disconnected...\` <@!${config.masterDiscordUser}>`)
     simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`Disconnected...\` <@!${config.masterDiscordUser}>`)
     log.warn('Disconnected. Attempting to reconnect...')
@@ -65,21 +65,21 @@ botend.onEnd = async function onEnd (reason) {
   }
 }
 botend.onRestart = async function onRestart (state) {
-  universal.disconnected = false
-  clearTimeout(universal.cancelLoginTimer)
-  await universal.bot.quit()
-  // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.restartWCA}`)
   simplediscord.sendTime(config.statusChannel, `${config.restartWCA}`)
+  universal.state.disconnected = false
+  clearTimeout(universal.timer.cancelLoginTimer)
+  universal.droid.quit()
+  // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.restartWCA}`)
   // COMMENT: The server you were previously on went down, you have been connected to a fallback server
   // COMMENT: Server restarting!
   // COMMENT: The server is restarting in 10 seconds.
   // COMMENT: The server is restarting in 5 seconds.
   // COMMENT: The server is restarting in 1 second.
   if (state === 'discord') {
-    loginBot()
+    login()
   } else {
-    universal.cancelLoginTimer = setTimeout(() => {
-      loginBot()
+    universal.timer.cancelLoginTimer = setTimeout(() => {
+      login()
     }, 5000)
   }
 }

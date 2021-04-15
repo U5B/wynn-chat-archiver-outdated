@@ -1,4 +1,5 @@
 const config = require('../../../config/config.json')
+const main = require('../../../../main.js')
 
 module.exports = {
   name: 'stream',
@@ -7,7 +8,7 @@ module.exports = {
   allowedRoles: [config.masterDiscordRole, config.trustedDiscordRole],
   allowedChannels: [config.commandChannel],
   execute (message, args, customs) {
-    customs.bot.chat('/stream')
+    main.universal.droid.chat('/stream')
     message.channel.send('Toggled stream mode.')
   }
 }
