@@ -18,7 +18,7 @@ events.onLogin = function forwardOnLogin () {
   log.log('Login event fired.')
   clearInterval(universal.timer.cancelCompassTimer)
   // COMMENT: onAWorld is used for whenever the WCA successfully logs into a world that isn't the hub
-  universal.state.onAWorld = false
+  universal.state.onWorld = false
   // COMMENT: clear any compass checks
   // COMMENT: fallback to WC0 until the world is online
   universal.info.currentWorld = 'WC0'

@@ -12,8 +12,8 @@ simplediscord.sendDate = function sendDate (channel, message) {
 }
 simplediscord.status = function status (status) {
   const onWynncraft = universal.state.onWynncraft
-  const onAWorld = universal.state.onAWorld
-  const resourcePackLoading = universal.state.resourcePackLoading
+  const onAWorld = universal.state.onWorld
+  const resourcePackLoading = universal.state.loadResourcePack
   const setPresence = (stat, active) => {
     client.user.setPresence({
       status: stat,

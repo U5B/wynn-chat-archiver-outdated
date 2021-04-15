@@ -8,7 +8,7 @@ module.exports = {
   allowedRoles: [config.masterDiscordRole, config.trustedDiscordRole],
   allowedChannels: [config.commandChannel],
   execute (message, args, customs) {
-    if (main.universal.state.onAWorld) {
+    if (main.universal.state.onWorld) {
       message.channel.send('fail: already on a world')
       return
     }

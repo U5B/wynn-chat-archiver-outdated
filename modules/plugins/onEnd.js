@@ -2,7 +2,7 @@ const config = require('../config/config')
 const universal = require('../universal')
 const log = require('../logging')
 const simplediscord = require('../simplediscord')
-const { client, sleep, login } = require('../../index')
+const { client, login } = require('../../index')
 
 const onEnd = {}
 onEnd.onKick = async function kick (reason, loggedIn) {
@@ -24,7 +24,7 @@ onEnd.onKick = async function kick (reason, loggedIn) {
     // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(nowDate + ` ${config.processEndMessage} <@!${config.masterDiscordUser}>`)
     simplediscord.sendDate(config.statusChannel, `${config.processEndMessage} <@!${config.masterDiscordUser}>`)
     client.user.setStatus('invisible')
-    await sleep(5000)
+    await universal.sleep(5000)
     log.error('Exiting process NOW')
     process.exit()
   } else if (kickReason === 'server_restart') {
@@ -51,8 +51,8 @@ onEnd.onEnd = async function end (reason) {
   }
   // COMMENT: Shut down when kicked or disconnected
   universal.state.onWynncraft = false
-  universal.state.onAWorld = false
-  universal.state.resourcePackLoading = false
+  universal.state.onWorld = false
+  universal.state.loadResourcePack = false
   simplediscord.status() // COMMENT: check discord status // COMMENT: check discord status
   clearInterval(universal.timer.cancelCompassTimer)
   // clearInterval(npcInterval)

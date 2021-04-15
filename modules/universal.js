@@ -13,8 +13,8 @@ module.exports = {
   state: {
     disconnected: false,
     onWynncraft: false,
-    onAWorld: false,
-    resourcePackLoading: false,
+    onWorld: false,
+    loadResourcePack: false,
     compassCheck: false
   },
   timer: {

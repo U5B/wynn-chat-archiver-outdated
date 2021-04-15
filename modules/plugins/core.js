@@ -2,25 +2,24 @@ const config = require('../config/config')
 const universal = require('../universal')
 const log = require('../logging')
 const simplediscord = require('../simplediscord')
-const { sleep } = require('../../index')
 
 const wcaCore = {}
 wcaCore.hub = function hub (message, force) {
-  if (universal.state.onAWorld || force) {
+  if (universal.state.onWorld || force) {
     // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.hubRestartMessage} [${message}] <@!${config.masterDiscordUser}>`)
-    simplediscord.sendTime(config.statusChannel, `${config.hubRestartMessage} [${message}] <@!${config.masterDiscordUser}>`)
+    simplediscord.sendTime(config.statusChannel, `${config.hubMessage} [${message}] <@!${config.masterDiscordUser}>`)
     universal.droid.chat('/hub')
   }
 }
 wcaCore.compass = async function compass (reason) {
   if (!reason) reason = ''
   if (universal.state.compassCheck) {
-    await sleep(4000)
+    await universal.sleep(4000)
   } else {
-    await sleep(1000)
+    await universal.sleep(1000)
   }
   // COMMENT: If already on a world, loading the resource pack or is has been kicked from the server, then do nothing
-  if (universal.state.onAWorld || !universal.state.onWynncraft || universal.state.resourcePackLoading) return
+  if (universal.state.onWorld || !universal.state.onWynncraft || universal.state.loadResourcePack) return
   log.log('Checking compass')
   universal.droid.setQuickBarSlot(0)
   // COMMENT: assume that it is slightly stuck if the held item is nothing
@@ -43,7 +42,7 @@ wcaCore.compass = async function compass (reason) {
       // COMMENT: retry on lobby or restart if hub is broken
       await compassActivate()
       universal.timer.cancelCompassTimer = setInterval(() => {
-        if (universal.state.onWynncraft && !universal.state.onAWorld && !universal.state.resourcePackLoading) {
+        if (universal.state.onWynncraft && !universal.state.onWorld && !universal.state.loadResourcePack) {
           compassActivate()
         }
       }, 10000)
@@ -56,17 +55,17 @@ wcaCore.onWindowOpen = async function onWindowOpen (window) {
   const windowText = JSON.parse(window.title).text
   if (windowText === 'Wynncraft Servers') {
     // COMMENT: Hardcoded to click on the recommended server slot - might need to be changed if Wynncraft updates their gui
-    await sleep(500)
+    await universal.sleep(500)
     await universal.droid.clickWindow(13, 0, 0)
     universal.state.compassCheck = true
     log.log('Clicked recommended slot.')
   } else if (windowText === 'Go to house') {
-    await sleep(500)
+    await universal.sleep(500)
     await universal.droid.clickWindow(11, 0, 0)
   } else if (windowText === '§8§lSelect a Class') {
     log.error(`somehow in class menu "${windowText}" going to hub - use /toggle autojoin`)
     log.debug(window.slots)
-    await sleep(500)
+    await universal.sleep(500)
     universal.droid.closeWindow(window)
     wcaCore.hub('Class Menu', true)
   } else {
@@ -83,7 +82,7 @@ wcaCore.chatLog = async function chatLog (message, messageString, excludeSpam) {
   // COMMENT: Champion Nickname detector - used to get the real username of the bomb thrower and guild messages
   if (message.json.extra) {
     for (let i = 0; i < message.json.extra.length; i++) {
-      // check if the nicked username is the bot
+      // check if the nicked IGN matches
       if (message.json?.extra[i].extra?.[0]?.hoverEvent?.value?.[2]?.text === universal.info.droidIGN && message.json?.extra[i].extra?.[0]?.hoverEvent?.value?.[1]?.text === '\'s real username is ') {
         universal.info.droidNickedIGN = message.json.extra[i]?.extra?.[0]?.hoverEvent?.value?.[0]?.text
         universal.info.realIGN = message.json.extra[i]?.extra?.[0]?.hoverEvent?.value?.[2]?.text
@@ -97,8 +96,8 @@ wcaCore.chatLog = async function chatLog (message, messageString, excludeSpam) {
 }
 wcaCore.onBotJoin = async function onBotJoin (username, world, wynnclass) {
   // COMMENT: Your now on a world - you have stopped loading resource pack lol
-  universal.state.onAWorld = true
-  universal.state.resourcePackLoading = false
+  universal.state.onWorld = true
+  universal.state.loadResourcePack = false
   // COMMENT: Set the currentWorld to the current World instead of WC0
   universal.info.currentWorld = world
   log.log(`Online on ${world}`)
@@ -108,7 +107,7 @@ wcaCore.onBotJoin = async function onBotJoin (username, world, wynnclass) {
 }
 wcaCore.lobbyError = async function lobbyError (reason) {
   if (reason == null) reason = ' '
-  if (universal.state.onAWorld) {
+  if (universal.state.onWorld) {
     wcaCore.hub(reason, true)
   } else {
     wcaCore.compass(reason)
