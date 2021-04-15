@@ -12,7 +12,7 @@ wcaNPC.npcLook = async function npcLook (username) {
       if (universal.state.onWynncraft) universal.droid.look(Math.PI, 0)
     } else {
       const positionX = (universal.droid.entity.position.x - target.position.x)
-      // const positionY = (universal.bot.entity.position.y - target.position.y) // TODO: someone help me figure out to look at the player height reee
+      // const positionY = (universal.droid.entity.position.y - target.position.y) // TODO: someone help me figure out to look at the player height reee
       const positionZ = (universal.droid.entity.position.z - target.position.z)
       const lookAtPlayer = Math.atan2(positionX, positionZ)
       if (Math.abs((lookAtPlayer - universal.droid.entity.yaw)) >= Math.PI) { // COMMENT: this entire thing is supposed to make the looking more "real"

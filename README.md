@@ -6,9 +6,9 @@ Relys heavily on <a target="_blank" href="https://github.com/PrismarineJS/minefl
 Join my [Discord](https://discord.gg/3UXxqC5kr9/) to see it in action.
 
 ## TODO
-1. Split `index.js` into multiple files.
-2. Fix bugs. yes
-3. Add more chat-based features
+1. Fix bugs.
+2. Add more chat-based features
+3. Add housing support
 
 # Disclaimer
 This is use at your own risk (for now). If you decide to include any afk interaction with the game world, there is a likely chance that you will be banned.

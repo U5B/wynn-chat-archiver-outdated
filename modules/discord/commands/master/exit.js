@@ -9,7 +9,7 @@ module.exports = {
   allowedChannels: [config.commandChannel],
   execute (message, args, customs) {
     main.log.warn('exiting via discord uwu')
-    message.channel.send('exiting bot process')
+    message.channel.send('exiting process')
     process.emit('SIGINT')
   }
 }

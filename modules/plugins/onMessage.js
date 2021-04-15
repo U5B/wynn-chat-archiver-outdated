@@ -28,8 +28,8 @@ msg.onMessage = function onMessage (message, messageString, messageMotd, message
       const serverRestartRegex = /(The server is restarting in (10|\d) (minute|second)s?\.|Server restarting!|The server you were previously on went down, you have been connected to a fallback server|Server closed)/
       // COMMENT: Regex for bombs.
       const bombThankRegex = /Want to thank (.+)\? Click here to thank them!/
-      // COMMENT: Regex for bot joining a world.
-      const botJoinRegex = /§r§a(?:|§r§a§o)(\w+)§r§2 has logged into server §r§a(WC\d+)§r§2 as §r§a(?:a|an) (\w+)§r/
+      // COMMENT: Regex for joining a world.
+      const worldJoinRegex = /§r§a(?:|§r§a§o)(\w+)§r§2 has logged into server §r§a(WC\d+)§r§2 as §r§a(?:a|an) (\w+)§r/
       if (compassCheckRegex.test(messageString)) {
         universal.state.compassCheck = true
         // wcacore.compass()
@@ -44,8 +44,8 @@ msg.onMessage = function onMessage (message, messageString, messageMotd, message
           log.log(`going to hub because bomb was thrown on ${universal.info.currentWorld}`)
           wcaCore.hub('Bomb_Thanks')
         }, 2000)
-      } else if (botJoinRegex.test(messageMotd)) {
-        const matches = botJoinRegex.exec(messageMotd)
+      } else if (worldJoinRegex.test(messageMotd)) {
+        const matches = worldJoinRegex.exec(messageMotd)
         if (matches[1] === universal.info.droidIGN || matches[1] === universal.info.droidNickedIGN) {
           const [, username, world, wynnclass] = matches
           wcaCore.onBotJoin(username, world, wynnclass)

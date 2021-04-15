@@ -3,7 +3,7 @@ const main = require('../../../../main.js')
 
 module.exports = {
   name: 'start',
-  description: 'start the bot',
+  description: 'start the program',
   permissionRoles: [config.masterDiscordRole, config.trustedDiscordRole],
   allowedRoles: [config.masterDiscordRole, config.trustedDiscordRole],
   allowedChannels: [config.commandChannel],

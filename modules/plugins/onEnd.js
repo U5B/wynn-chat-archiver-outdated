@@ -4,8 +4,8 @@ const log = require('../logging')
 const simplediscord = require('../simplediscord')
 const { client, sleep, login } = require('../../index')
 
-const botend = {}
-botend.onKick = async function kick (reason, loggedIn) {
+const onEnd = {}
+onEnd.onKick = async function kick (reason, loggedIn) {
   universal.state.disconnected = true
   let kickReason
   const reasonType = typeof reason
@@ -31,7 +31,7 @@ botend.onKick = async function kick (reason, loggedIn) {
     log.warn('Disconnected due to server restart.')
     // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.kickMessage} \`Server Restart\` <@!${config.masterDiscordUser}>`)
     simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`Server Restart\` <@!${config.masterDiscordUser}>`)
-    botend.onRestart()
+    onEnd.onRestart()
   } else if (kickReason === '{"text":"ReadTimeoutException : null"}') {
     universal.state.disconnected = false
     simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
@@ -43,13 +43,13 @@ botend.onKick = async function kick (reason, loggedIn) {
     simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
   }
 }
-botend.onEnd = async function end (reason) {
+onEnd.onEnd = async function end (reason) {
   if (reason == null) {
     reason = 'user_disconnect'
   } else {
     universal.droid.quit()
   }
-  // COMMENT: Shut all the bot things down when kicked or disconnected
+  // COMMENT: Shut down when kicked or disconnected
   universal.state.onWynncraft = false
   universal.state.onAWorld = false
   universal.state.resourcePackLoading = false
@@ -61,10 +61,10 @@ botend.onEnd = async function end (reason) {
     // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + ` ${config.kickMessage} \`Disconnected...\` <@!${config.masterDiscordUser}>`)
     simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`Disconnected...\` <@!${config.masterDiscordUser}>`)
     log.warn('Disconnected. Attempting to reconnect...')
-    botend.onRestart()
+    onEnd.onRestart()
   }
 }
-botend.onRestart = async function onRestart (state) {
+onEnd.onRestart = async function onRestart (state) {
   simplediscord.sendTime(config.statusChannel, `${config.restartWCA}`)
   universal.state.disconnected = false
   clearTimeout(universal.timer.cancelLoginTimer)
@@ -83,4 +83,4 @@ botend.onRestart = async function onRestart (state) {
     }, 5000)
   }
 }
-module.exports = botend
+module.exports = onEnd

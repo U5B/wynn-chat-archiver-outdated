@@ -3,7 +3,7 @@ const main = require('../../../../main.js')
 
 module.exports = {
   name: 'territory',
-  description: 'developer was too lazy too add a description, sorry',
+  description: 'get territory location',
   permissionRoles: [],
   allowedRoles: [config.masterDiscordRole, config.trustedDiscordRole],
   allowedChannels: [config.commandChannel],

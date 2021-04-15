@@ -20,7 +20,7 @@ module.exports = {
     const trustedMessage = `Trusted:
     stop = stops the WCA
     exit = panic command to stop everything
-    sudo = sudo the bot to do something in chat / make sure you put a slash before any commands`
+    sudo = eval but chat`
 
     const availableRoles = this.allowedRoles.map(role => message.member.roles.cache.has(role))
 

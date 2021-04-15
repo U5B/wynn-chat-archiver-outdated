@@ -23,7 +23,7 @@ wcaCore.compass = async function compass (reason) {
   if (universal.state.onAWorld || !universal.state.onWynncraft || universal.state.resourcePackLoading) return
   log.log('Checking compass')
   universal.droid.setQuickBarSlot(0)
-  // COMMENT: assume that bot is slightly stuck if the held item is nothing
+  // COMMENT: assume that it is slightly stuck if the held item is nothing
   if (!universal.droid.heldItem) {
     log.log(universal.droid.heldItem)
   } else {
@@ -40,7 +40,7 @@ wcaCore.compass = async function compass (reason) {
       universal.droid.activateItem()
     }
     if (itemHeld === 'compass') {
-      // COMMENT: retry on lobby or restart entire bot if hub is broken
+      // COMMENT: retry on lobby or restart if hub is broken
       await compassActivate()
       universal.timer.cancelCompassTimer = setInterval(() => {
         if (universal.state.onWynncraft && !universal.state.onAWorld && !universal.state.resourcePackLoading) {
@@ -49,9 +49,6 @@ wcaCore.compass = async function compass (reason) {
       }, 10000)
     }
   }
-  // if (itemHeld === 'bow' || itemHeld === 'wooden_shovel' || itemHeld === 'iron_shovel' || itemHeld === 'stone_shovel' || itemHeld === 'shears') {
-  //  bot.setQuickBarSlot(7)
-  // }
 }
 wcaCore.onWindowOpen = async function onWindowOpen (window) {
   window.requiresConfirmation = false

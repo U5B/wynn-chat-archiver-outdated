@@ -28,7 +28,6 @@ client.once('ready', async () => {
   process.title = config.processTitle ? config.processTitle : 'Wynn Chat Archive'
   log.warn(`Logged into Discord as ${client.user.tag}`)
   await client.guilds.cache.get(config.guildid).channels.cache.get(config.bombChannel).bulkDelete(100) // COMMENT: how do you delete specific messages after a certain time
-  // COMMENT: start the bot
   login()
   // COMMENT: run this function whenever I recieve a discord message
   client.on('message', async message => {
