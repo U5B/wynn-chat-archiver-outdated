@@ -3,9 +3,9 @@ const universal = require('../universal.js')
 const log = require('../logging.js')
 const simplediscord = require('../simplediscord.js')
 
-const resourcepack = {}
+const resourcePack = {}
 let resourcePackSendListener
-resourcepack.resourcePackAccept = function () {
+resourcePack.resourcePackAccept = function () {
   log.warn('Connected && Loading Resource Pack...')
   // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.worldReconnectMessage}`)
   simplediscord.sendTime(config.statusChannel, `${config.resourcePack}`)
@@ -30,4 +30,4 @@ resourcepack.resourcePackAccept = function () {
   }
   universal.droid._client.once('resource_pack_send', resourcePackSendListener)
 }
-module.exports = resourcepack
+module.exports = resourcePack

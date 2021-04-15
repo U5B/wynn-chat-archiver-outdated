@@ -2,12 +2,12 @@ const config = require('./config/config.json')
 const { client } = require('../index.js')
 const log = require('./logging.js')
 const Timer = require('easytimer.js').Timer
-const guild = {}
+const wcaGuild = {}
 
-guild.territory = async function territoryTracker (territory, time) {
+wcaGuild.territory = async function territoryTracker (territory, time) {
   // COMMENT: track guild territory
   const duration = time
-  const territoryLocation = await guild.territoryLocation(territory)
+  const territoryLocation = await wcaGuild.territoryLocation(territory)
   const territoryMessage = `[${new Date(Date.now()).toLocaleTimeString('en-US')}] <@&${config.territoryRole}> War for **${territory}** (${territoryLocation})`
   client.guilds.cache.get(config.guildid).channels.cache.get(config.territoryChannel).send(territoryMessage + ` starts in **[${time}:00]**`)
     .then(msg => {
@@ -48,7 +48,7 @@ async function territoryTimer (msg, territoryMessage, duration) {
     msg.edit(territoryMessage + ` starts in **[${timeLeftMinutes}:${timeLeftSeconds}]**`)
   })
 }
-guild.territoryLocation = async function getTerritoryLocation (territoryName) {
+wcaGuild.territoryLocation = async function getTerritoryLocation (territoryName) {
   const wynnTerritoryFile = require('./api/territorylocations.json')
   const ter = wynnTerritoryFile.territories
   let territoryCoordinates
@@ -73,7 +73,7 @@ guild.territoryLocation = async function getTerritoryLocation (territoryName) {
   return territoryCoordinates
 }
 
-guild.guildMessage = function logGuildMessageToDiscord (fullMessage, rank, username, message) {
+wcaGuild.guildMessage = function logGuildMessageToDiscord (fullMessage, rank, username, message) {
   const guildMessagePrefix = `[${new Date(Date.now()).toLocaleTimeString('en-US')}]` + ' '
   const guildEmoji = config.guildEmoji ? config.guildEmoji : '🚩'
   let guildMessageSuffix
@@ -84,13 +84,13 @@ guild.guildMessage = function logGuildMessageToDiscord (fullMessage, rank, usern
   }
   client.guilds.cache.get(config.guildid).channels.cache.get(config.guildChatChannel).send(guildMessagePrefix + guildMessageSuffix)
 }
-guild.guildJoin = function logGuildJoinToDiscord (fullMessage, username, world, wynnclass) {
+wcaGuild.guildJoin = function logGuildJoinToDiscord (fullMessage, username, world, wynnclass) {
   const guildPrefix = `[${new Date(Date.now()).toLocaleTimeString('en-US')}]` + ' '
   const guildEmoji = config.guildEmoji ? config.guildEmoji : '🚩'
   const guildSuffix = `${guildEmoji} ▶️ **${username}**`
   client.guilds.cache.get(config.guildid).channels.cache.get(config.guildChatChannel).send(guildPrefix + guildSuffix)
 }
-guild.guildBank = function logGuildBankToDiscord (message, username, deposit, amount, item, fromto, rank) {
+wcaGuild.guildBank = function logGuildBankToDiscord (message, username, deposit, amount, item, fromto, rank) {
   // COMMENT: track guild bank messages
   log.log(`detected a ${deposit}`)
   const bankMessagePrefix = `[${new Date(Date.now()).toLocaleTimeString('en-US')}]` + ''
@@ -109,4 +109,4 @@ guild.guildBank = function logGuildBankToDiscord (message, username, deposit, am
   }
   // client.guilds.cache.get(config.guildid).channels.cache.get(config.logGuildBankChannel).send(now + `${message}`)
 }
-module.exports = guild
+module.exports = wcaGuild

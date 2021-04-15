@@ -2,8 +2,8 @@ const color = require('./modules/colors')
 const simplediscord = require('./modules/simplediscord')
 const log = require('./modules/logging')
 const files = require('./modules/files')
-const wcabomb = require('./modules/bomb')
-const wcaguild = require('./modules/guild')
+const wcaBomb = require('./modules/bomb')
+const wcaGuild = require('./modules/guild')
 const wcaAPI = require('./modules/api')
 const wcaResourcePack = require('./modules/plugins/resourcepack')
 const wcaOnEnd = require('./modules/plugins/onEnd')
@@ -20,8 +20,8 @@ module.exports = {
   files: files,
   wca: {
     events: events,
-    bomb: wcabomb,
-    guild: wcaguild,
+    bomb: wcaBomb,
+    guild: wcaGuild,
     api: wcaAPI,
     resourcePack: wcaResourcePack,
     onEnd: wcaOnEnd,

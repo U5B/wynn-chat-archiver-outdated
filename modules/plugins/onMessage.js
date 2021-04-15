@@ -1,4 +1,4 @@
-const msg = {}
+const onMessage = {}
 const { client } = require('../../index.js')
 const config = require('../config/config.json')
 const color = require('../colors.js')
@@ -9,7 +9,7 @@ const universal = require('../universal.js')
 const log = require('../logging.js')
 const wcaBomb = require('../bomb.js')
 
-msg.onMessage = function onMessage (message, messageString, messageMotd, messageAnsi) {
+onMessage.onMessage = function onMessage (message, messageString, messageMotd, messageAnsi) {
   universal.info.realIGN = undefined
   // COMMENT: Exclude spam has many messages that clutter up your chat such as level up messages and other stuff like that
   const excludeActionbar = /(?:.+ \d+\/\d+ {4}(?:.*) {4}. \d+\/\d+)/
@@ -91,7 +91,7 @@ msg.onMessage = function onMessage (message, messageString, messageMotd, message
           if (shoutMessageRegex.test(messageString)) {
             const matches = shoutMessageRegex.exec(messageString)
             const [fullMessage, username, world, shoutMessage] = matches
-            msg.logShout(fullMessage, username, world, shoutMessage)
+            onMessage.logShout(fullMessage, username, world, shoutMessage)
           }
         }
         if (config.bombTracker) {
@@ -135,7 +135,7 @@ msg.onMessage = function onMessage (message, messageString, messageMotd, message
     }
   }
 }
-msg.onBossBarUpdated = function onBossBarUpdated (bossBar) {
+onMessage.onBossBarUpdated = function onBossBarUpdated (bossBar) {
   // COMMENT: get off the server if a bomb is in the bossbar
   const bombBarRegex = /(.+) from (.+) \[(\d+) min\]/
   const bossBarString = color.stripthes(bossBar.title.text)
@@ -145,8 +145,8 @@ msg.onBossBarUpdated = function onBossBarUpdated (bossBar) {
     wcaCore.hub('Bomb_BossBar')
   }
 }
-msg.logShout = function logShoutToDiscord (fullMessage, username, world, shoutMessage) {
+onMessage.logShout = function logShoutToDiscord (fullMessage, username, world, shoutMessage) {
   // COMMENT: Custom Shout Message Formatting
   client.guilds.cache.get(config.guildid).channels.cache.get(config.shoutChannel).send(`[${new Date(Date.now()).toLocaleTimeString('en-US')}]` + ` [${world}] \`${username}\`: \`${shoutMessage}\``)
 }
-module.exports = msg
+module.exports = onMessage
