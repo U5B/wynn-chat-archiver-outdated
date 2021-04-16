@@ -107,6 +107,5 @@ wcaGuild.guildBank = function logGuildBankToDiscord (message, username, deposit,
     const sentBankMessage = `${bankMessagePrefix} ${bankEmoji} ${bankMessageSuffix}`
     client.guilds.cache.get(config.guildid).channels.cache.get(config.guildBankChannel).send(sentBankMessage + '')
   }
-  // client.guilds.cache.get(config.guildid).channels.cache.get(config.logGuildBankChannel).send(now + `${message}`)
 }
 module.exports = wcaGuild

@@ -1,7 +1,7 @@
 const universal = require('../universal')
 const log = require('../logging')
 const wcaNPC = {}
-wcaNPC.npcLook = async function npcLook (username) {
+wcaNPC.npcLook = async function (username) {
   function lookAtPlayer () {
     // COMMENT: create a filter function that checks if the entity is a player and the name of the entity is the player's username and its distance is less than 5 blocks
     const filter = entity => entity.type === 'player' && entity.username === username && entity.position.distanceTo(universal.droid.entity.position) < 5
@@ -24,7 +24,7 @@ wcaNPC.npcLook = async function npcLook (username) {
   }
   lookAtPlayer()
 }
-wcaNPC.housingClick = async function housingClick (entityName, entityPositionX, entityPositionZ) {
+wcaNPC.housingClick = async function (entityName, entityPositionX, entityPositionZ) {
   const filter = entity => entity.name === entityName && entity.position.x === entityPositionX && entity.position.z === entityPositionZ
   const target = universal.droid.nearestEntity(filter)
   if (target) {

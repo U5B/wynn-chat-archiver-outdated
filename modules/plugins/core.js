@@ -4,14 +4,13 @@ const log = require('../logging')
 const simplediscord = require('../simplediscord')
 
 const wcaCore = {}
-wcaCore.hub = function hub (message, force) {
+wcaCore.hub = function (message, force) {
   if (universal.state.onWorld || force) {
-    // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.hubRestartMessage} [${message}] <@!${config.masterDiscordUser}>`)
     simplediscord.sendTime(config.statusChannel, `${config.hubMessage} [${message}] <@!${config.masterDiscordUser}>`)
     universal.droid.chat('/hub')
   }
 }
-wcaCore.compass = async function compass (reason) {
+wcaCore.compass = async function (reason) {
   if (!reason) reason = ''
   if (universal.state.compassCheck) {
     await universal.sleep(4000)
@@ -19,7 +18,7 @@ wcaCore.compass = async function compass (reason) {
     await universal.sleep(1000)
   }
   // COMMENT: If already on a world, loading the resource pack or is has been kicked from the server, then do nothing
-  if (universal.state.onWorld || !universal.state.onWynncraft || universal.state.loadResourcePack) return
+  if (universal.state.onWorld || !universal.state.onWynncraft || universal.state.serverSwitch) return
   log.log('Checking compass')
   universal.droid.setQuickBarSlot(0)
   // COMMENT: assume that it is slightly stuck if the held item is nothing
@@ -34,7 +33,6 @@ wcaCore.compass = async function compass (reason) {
     clearInterval(universal.timer.cancelCompassTimer)
     async function compassActivate () {
       log.log('Clicking compass...')
-      // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.worldReconnectMessage} [Lobby]`)
       simplediscord.sendTime(config.statusChannel, `${config.worldReconnectMessage} [Lobby] [${reason}]`)
       universal.droid.activateItem()
     }
@@ -42,14 +40,14 @@ wcaCore.compass = async function compass (reason) {
       // COMMENT: retry on lobby or restart if hub is broken
       await compassActivate()
       universal.timer.cancelCompassTimer = setInterval(() => {
-        if (universal.state.onWynncraft && !universal.state.onWorld && !universal.state.loadResourcePack) {
+        if (universal.state.onWynncraft && !universal.state.onWorld && !universal.state.serverSwitch) {
           compassActivate()
         }
       }, 10000)
     }
   }
 }
-wcaCore.onWindowOpen = async function onWindowOpen (window) {
+wcaCore.onWindowOpen = async function (window) {
   window.requiresConfirmation = false
   // COMMENT: this is used so that I can technically support any gui in one section of my code
   const windowText = JSON.parse(window.title).text
@@ -76,7 +74,7 @@ wcaCore.onWindowOpen = async function onWindowOpen (window) {
     universal.droid.closeWindow(window)
   }
 }
-wcaCore.chatLog = async function chatLog (message, messageString, excludeSpam) {
+wcaCore.chatLog = function (message, messageString, excludeSpam) {
   const jsonString = JSON.stringify(message.json)
   log.verbose(jsonString)
   // COMMENT: Champion Nickname detector - used to get the real username of the bomb thrower and guild messages
@@ -94,20 +92,19 @@ wcaCore.chatLog = async function chatLog (message, messageString, excludeSpam) {
   }
   if (!excludeSpam.test(messageString)) log.chat(message.toMotd())
 }
-wcaCore.onBotJoin = async function onBotJoin (username, world, wynnclass) {
+wcaCore.onWorldJoin = function (username, world, wynnclass) {
   // COMMENT: Your now on a world - you have stopped loading resource pack lol
   universal.state.onWorld = true
-  universal.state.loadResourcePack = false
+  universal.state.serverSwitch = false
   // COMMENT: Set the currentWorld to the current World instead of WC0
   universal.info.currentWorld = world
   log.log(`Online on ${world}`)
-  // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.worldConnectMessage}`)
   simplediscord.sendTime(config.statusChannel, `${config.worldConnectMessage}`)
   simplediscord.status() // COMMENT: check discord status
 }
-wcaCore.lobbyError = async function lobbyError (reason) {
+wcaCore.lobbyError = function (reason) {
   if (reason == null) reason = ' '
-  if (universal.state.onWorld) {
+  if (universal.state.onWorld || universal.state.serverSwitch) {
     wcaCore.hub(reason, true)
   } else {
     wcaCore.compass(reason)

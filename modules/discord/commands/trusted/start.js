@@ -15,7 +15,7 @@ module.exports = {
     main.wca.onEnd.onRestart('discord')
     main.log.warn(`WCA has joined game - due to ${config.prefix}start from Discord.`)
     message.channel.send('starting WCA')
-    // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(now + `${config.startWCA}`)
+
     // main.simplediscord.sendTime(config.statusChannel, `${config.startWCA}`)
   }
 }

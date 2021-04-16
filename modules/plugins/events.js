@@ -5,46 +5,47 @@ const universal = require('../universal.js')
 const wcaCore = require('./core')
 const msg = require('./onMessage')
 const events = {}
-events.onceLogin = function forwardOnceLogin () {
+events.onceLogin = function () {
   log.warn('Connected to Wynncraft.')
   // COMMENT: onWynncraft is set to true on startup
   universal.state.disconnected = false
   universal.state.onWynncraft = true
   universal.info.droidIGN = universal.droid.username
-  // client.guilds.cache.get(config.guildid).channels.cache.get(config.statusChannel).send(nowDate + `${config.firstConnectMessage}`)
+
   simplediscord.sendDate(config.statusChannel, `${config.firstConnectMessage}`)
 }
-events.onLogin = function forwardOnLogin () {
+events.onLogin = function () {
   log.log('Login event fired.')
   clearInterval(universal.timer.cancelCompassTimer)
   // COMMENT: onAWorld is used for whenever the WCA successfully logs into a world that isn't the hub
   universal.state.onWorld = false
+  universal.state.serverSwitch = false
   // COMMENT: clear any compass checks
   // COMMENT: fallback to WC0 until the world is online
   universal.info.currentWorld = 'WC0'
   simplediscord.status()// COMMENT: check discord status
   log.warn('Connected.')
 }
-events.onceSpawn = function forwardOnceSpawn () {
+events.onceSpawn = function () {
   log.getChat()
 }
-events.onSpawn = async function forwardOnSpawn () {
+events.onSpawn = async function () {
   log.log('Spawn event fired.')
   // COMMENT: Wait for the chunks to load before checking
   await universal.droid.waitForChunksToLoad()
   log.log('Chunks loaded...')
   wcaCore.compass()
 }
-events.onWindowOpen = function forwardOnWindowOpen (window) {
+events.onWindowOpen = function (window) {
   wcaCore.onWindowOpen(window)
 }
-events.onMessage = function forwardOnMessage (message) {
+events.onMessage = function (message) {
   const messageMotd = String(message.toMotd())
   const messageString = String(message.toString())
   const messageAnsi = String(message.toAnsi())
   msg.onMessage(message, messageString, messageMotd, messageAnsi)
 }
-events.onBossBarUpdated = function forwardOnBossBarUpdated (bossBar) {
+events.onBossBarUpdated = function (bossBar) {
   msg.onBossBarUpdated(bossBar)
 }
 

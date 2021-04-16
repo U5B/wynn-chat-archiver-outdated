@@ -5,7 +5,7 @@ const files = require('./files.js')
 const Timer = require('easytimer.js').Timer
 const wcaBomb = {}
 
-wcaBomb.logBomb = function logBombToDiscord (fullMessage, username, bomb, world, timeLeft) {
+wcaBomb.logBomb = function (fullMessage, username, bomb, world, timeLeft) {
   // COMMENT: track some explosions
   log.log(`${bomb} bomb logged`)
   const bombMessagePrefix = `[${new Date(Date.now()).toLocaleTimeString('en-US')}]` + ''
@@ -112,7 +112,6 @@ function bombCountDown (msg, message, duration, world, playerCountMax) {
   timer.addEventListener('targetAchieved', () => {
     msg.delete()
       .then(log.log('Bomb Message deleted'))
-
     timer.removeEventListener('minutesUpdated')
     timer.removeEventListener('targetAchieved')
     counter = 1

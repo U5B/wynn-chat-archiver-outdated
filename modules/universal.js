@@ -15,7 +15,8 @@ module.exports = {
     onWynncraft: false,
     onWorld: false,
     loadResourcePack: false,
-    compassCheck: false
+    compassCheck: false,
+    serverSwitch: false
   },
   timer: {
     cancelLoginTimer: undefined,
