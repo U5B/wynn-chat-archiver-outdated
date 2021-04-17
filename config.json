@@ -5,6 +5,7 @@
     "version": "1.16.4",
 
     "debug": false,
+    "processTitle": "uwu",
 
     "bombTracker": true,
     "guildTracker": true,
@@ -55,11 +56,11 @@
     "professionSpeedChannel": "000000000000000000",
     "professionXPChannel": "000000000000000000",
 
-    "__combatXPEmoji": "💣",
-    "__dungeonEmoji": "💣",
-    "__lootEmoji": "💣",
-    "__professionSpeedEmoji": "💣",
-    "__professionXPEmoji": "💣",
+    "combatXPEmoji": "💣",
+    "dungeonEmoji": "💣",
+    "lootEmoji": "💣",
+    "professionSpeedEmoji": "💣",
+    "professionXPEmoji": "💣",
 
 
     "test": "test"
