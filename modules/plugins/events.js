@@ -1,6 +1,6 @@
 const log = require('../logging')
 const simplediscord = require('../simplediscord')
-const config = require('../config/config.json')
+const config = require('../config/config.js')
 const universal = require('../universal.js')
 const wcaCore = require('./core')
 const msg = require('./onMessage')
@@ -12,7 +12,7 @@ events.onceLogin = function () {
   universal.state.onWynncraft = true
   universal.info.droidIGN = universal.droid.username
 
-  simplediscord.sendDate(config.statusChannel, `${config.firstConnectMessage}`)
+  simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.firstConnectMessage}`)
 }
 events.onLogin = function () {
   log.log('Login event fired.')

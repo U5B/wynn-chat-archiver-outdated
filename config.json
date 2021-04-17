@@ -5,11 +5,11 @@
     "version": "1.16.4",
 
     "debug": false,
-    "viewerPort": "8080",
 
     "bombTracker": true,
     "guildTracker": true,
     "shoutTracker": true,
+    "ignoreBombs": false,
 
     "hubMessage": " 🚫 **Connected to hub...**",
     "firstConnectMessage": " ☑️ **Connected to wynncraft.**",
@@ -55,11 +55,11 @@
     "professionSpeedChannel": "000000000000000000",
     "professionXPChannel": "000000000000000000",
 
-    "__combatXPEmoji": "<:bomb_combat_xp:000000000000000000>",
-    "__dungeonEmoji": "<:bomb_dungeon:000000000000000000>",
-    "__lootEmoji": "<:bomb_loot:000000000000000000>",
-    "__professionSpeedEmoji": "<:bomb_prof_speed:000000000000000000>",
-    "__professionXPEmoji": "<:bomb_prof_xp:000000000000000000>",
+    "__combatXPEmoji": "💣",
+    "__dungeonEmoji": "💣",
+    "__lootEmoji": "💣",
+    "__professionSpeedEmoji": "💣",
+    "__professionXPEmoji": "💣",
 
 
     "test": "test"

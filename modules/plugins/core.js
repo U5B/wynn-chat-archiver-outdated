@@ -1,4 +1,4 @@
-const config = require('../config/config')
+const config = require('../config/config.js')
 const universal = require('../universal')
 const log = require('../logging')
 const simplediscord = require('../simplediscord')
@@ -6,7 +6,7 @@ const simplediscord = require('../simplediscord')
 const wcaCore = {}
 wcaCore.hub = function (message, force) {
   if (universal.state.onWorld || force) {
-    simplediscord.sendTime(config.statusChannel, `${config.hubMessage} [${message}] <@!${config.masterDiscordUser}>`)
+    simplediscord.sendTime(config.discord.log.statusChannel, `${config.msg.hubMessage} [${message}] <@!${config.discord.admin.masterUser}>`)
     universal.droid.chat('/hub')
   }
 }
@@ -33,7 +33,7 @@ wcaCore.compass = async function (reason) {
     clearInterval(universal.timer.cancelCompassTimer)
     async function compassActivate () {
       log.log('Clicking compass...')
-      simplediscord.sendTime(config.statusChannel, `${config.worldReconnectMessage} [Lobby] [${reason}]`)
+      simplediscord.sendTime(config.discord.log.statusChannel, `${config.msg.worldReconnectMessage} [Lobby] [${reason}]`)
       universal.droid.activateItem()
     }
     if (itemHeld === 'compass') {
@@ -99,7 +99,7 @@ wcaCore.onWorldJoin = function (username, world, wynnclass) {
   // COMMENT: Set the currentWorld to the current World instead of WC0
   universal.info.currentWorld = world
   log.log(`Online on ${world}`)
-  simplediscord.sendTime(config.statusChannel, `${config.worldConnectMessage}`)
+  simplediscord.sendTime(config.discord.log.statusChannel, `${config.msg.worldConnectMessage}`)
   simplediscord.status() // COMMENT: check discord status
 }
 wcaCore.lobbyError = function (reason) {

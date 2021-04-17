@@ -1,4 +1,4 @@
-const config = require('./config/config.json')
+const config = require('./config/config.js')
 const { client } = require('../index.js')
 const log = require('./logging.js')
 const files = require('./files.js')
@@ -21,13 +21,13 @@ wcaBomb.logBomb = function (fullMessage, username, bomb, world, timeLeft) {
     } else {
       bombTime = timeLeft
     }
-    const bombRole = config.combatXPRole ? config.combatXPRole : '[Combat XP]'
-    const bombEmoji = config.combatXPEmoji ? config.CombatXPEmoji : '▶️'
-    const bombChannel = config.combatXPChannel ? config.combatXPChannel : config.bombChannel
+    const bombRole = config.discord.bomb.combatXPRole ? config.discord.bomb.combatXPRole : '[Combat XP]'
+    const bombEmoji = config.discord.bomb.combatXPEmoji ? config.discord.bomb.combatXPEmoji : '💣'
+    const bombChannel = config.discord.bomb.combatXPChannel ? config.discord.bomb.combatXPChannel : config.discord.bomb.channel
     const sentBombMessage = `${bombMessagePrefix} ${bombEmoji} <@&${bombRole}> ${bombMessageSuffix}`
     // COMMENT: display duration of bomb and playercount/max
     const timerMessage = ` (**${bombTime}** minutes left) **[${playerCount}/${playerCountMax}]**`
-    client.guilds.cache.get(config.guildid).channels.cache.get(bombChannel).send(sentBombMessage + timerMessage)
+    client.guilds.cache.get(config.discord.guildid).channels.cache.get(bombChannel).send(sentBombMessage + timerMessage)
       .then(msg => {
         bombCountDown(msg, sentBombMessage, bombTime, world, playerCountMax)
       })
@@ -38,12 +38,12 @@ wcaBomb.logBomb = function (fullMessage, username, bomb, world, timeLeft) {
     } else {
       bombTime = timeLeft
     }
-    const bombRole = config.dungeonRole ? config.dungeonRole : '[Dungeon]'
-    const bombEmoji = config.dungeonEmoji ? config.dungeonEmoji : '▶️'
-    const bombChannel = config.dungeonChannel ? config.dungeonChannel : config.bombChannel
+    const bombRole = config.discord.bomb.dungeonRole ? config.discord.bomb.dungeonRole : '[Dungeon]'
+    const bombEmoji = config.discord.bomb.dungeonEmoji ? config.discord.bomb.dungeonEmoji : '💣'
+    const bombChannel = config.discord.bomb.dungeonChannel ? config.discord.bomb.dungeonChannel : config.discord.bomb.channel
     const sentBombMessage = `${bombMessagePrefix} ${bombEmoji} <@&${bombRole}> ${bombMessageSuffix}`
     const timerMessage = ` (**${bombTime}** minutes left) **[${playerCount}/${playerCountMax}]**`
-    client.guilds.cache.get(config.guildid).channels.cache.get(bombChannel).send(sentBombMessage + timerMessage)
+    client.guilds.cache.get(config.discord.guildid).channels.cache.get(bombChannel).send(sentBombMessage + timerMessage)
       .then(msg => {
         bombCountDown(msg, sentBombMessage, bombTime, world, playerCountMax)
       })
@@ -54,12 +54,12 @@ wcaBomb.logBomb = function (fullMessage, username, bomb, world, timeLeft) {
     } else {
       bombTime = timeLeft
     }
-    const bombRole = config.lootRole ? config.lootRole : '[Loot]'
-    const bombEmoji = config.lootEmoji ? config.lootEmoji : '▶️'
-    const bombChannel = config.lootChannel ? config.lootChannel : config.bombChannel
+    const bombRole = config.discord.bomb.lootRole ? config.discord.bomb.lootRole : '[Loot]'
+    const bombEmoji = config.discord.bomb.lootEmoji ? config.discord.bomb.lootEmoji : '💣'
+    const bombChannel = config.discord.bomb.lootChannel ? config.discord.bomb.lootChannel : config.discord.bomb.channel
     const sentBombMessage = `${bombMessagePrefix} ${bombEmoji} <@&${bombRole}> ${bombMessageSuffix}`
     const timerMessage = ` (**${bombTime}** minutes left) **[${playerCount}/${playerCountMax}]**`
-    client.guilds.cache.get(config.guildid).channels.cache.get(bombChannel).send(sentBombMessage + timerMessage)
+    client.guilds.cache.get(config.discord.guildid).channels.cache.get(bombChannel).send(sentBombMessage + timerMessage)
       .then(msg => {
         bombCountDown(msg, sentBombMessage, bombTime, world, playerCountMax)
       })
@@ -70,12 +70,12 @@ wcaBomb.logBomb = function (fullMessage, username, bomb, world, timeLeft) {
     } else {
       bombTime = timeLeft
     }
-    const bombRole = config.professionSpeedRole ? config.professionSpeedRole : '[Profession Speed]'
-    const bombEmoji = config.professionSpeedEmoji ? config.professionSpeedEmoji : '▶️'
-    const bombChannel = config.professionSpeedChannel ? config.professionSpeedChannel : config.bombChannel
+    const bombRole = config.discord.bomb.professionSpeedRole ? config.discord.bomb.professionSpeedRole : '[Profession Speed]'
+    const bombEmoji = config.discord.bomb.professionSpeedEmoji ? config.discord.bomb.professionSpeedEmoji : '💣'
+    const bombChannel = config.discord.bomb.professionSpeedChannel ? config.discord.bomb.professionSpeedChannel : config.discord.bomb.channel
     const sentBombMessage = `${bombMessagePrefix} ${bombEmoji} <@&${bombRole}> ${bombMessageSuffix}`
     const timerMessage = ` (**${bombTime}** minutes left) **[${playerCount}/${playerCountMax}]**`
-    client.guilds.cache.get(config.guildid).channels.cache.get(bombChannel).send(sentBombMessage + timerMessage)
+    client.guilds.cache.get(config.discord.guildid).channels.cache.get(bombChannel).send(sentBombMessage + timerMessage)
       .then(msg => {
         bombCountDown(msg, sentBombMessage, bombTime, world, playerCountMax)
       })
@@ -86,12 +86,12 @@ wcaBomb.logBomb = function (fullMessage, username, bomb, world, timeLeft) {
     } else {
       bombTime = timeLeft
     }
-    const bombRole = config.professionXPRole ? config.professionXPRole : '[Profession XP]'
-    const bombEmoji = config.professionXPEmoji ? config.professionXPEmoji : '▶️'
-    const bombChannel = config.professionXPChannel ? config.professionXPChannel : config.bombChannel
+    const bombRole = config.discord.bomb.professionXPRole ? config.discord.bomb.professionXPRole : '[Profession XP]'
+    const bombEmoji = config.discord.bomb.professionXPEmoji ? config.discord.bomb.professionXPEmoji : '💣'
+    const bombChannel = config.professionXPChannel ? config.discord.bomb.professionXPChannel : config.discord.bomb.channel
     const sentBombMessage = `${bombMessagePrefix} ${bombEmoji} <@&${bombRole}> ${bombMessageSuffix}`
     const timerMessage = ` (**${bombTime}** minutes left) **[${playerCount}/${playerCountMax}]**`
-    client.guilds.cache.get(config.guildid).channels.cache.get(bombChannel).send(sentBombMessage + timerMessage)
+    client.guilds.cache.get(config.discord.guildid).channels.cache.get(bombChannel).send(sentBombMessage + timerMessage)
       .then(msg => {
         bombCountDown(msg, sentBombMessage, bombTime, world, playerCountMax)
       })
@@ -99,8 +99,8 @@ wcaBomb.logBomb = function (fullMessage, username, bomb, world, timeLeft) {
     // COMMENT: If it doesn't match: (Combat XP, Loot, Dungeon, Profession Speed, Profession XP) then log the error
     log.error(bomb)
   }
-  client.guilds.cache.get(config.guildid).channels.cache.get(config.logBombChannel).send(`[${new Date(Date.now()).toLocaleTimeString('en-US')}] ${fullMessage}`)
   files.writeBombStats(world, bomb)
+  client.guilds.cache.get(config.discord.guildid).channels.cache.get(config.discord.bomb.logBombChannel).send(`[${new Date(Date.now()).toLocaleTimeString('en-US')}] ${fullMessage}`)
 }
 
 function bombCountDown (msg, message, duration, world, playerCountMax) {

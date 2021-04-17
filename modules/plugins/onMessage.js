@@ -1,6 +1,6 @@
 const onMessage = {}
 const { client } = require('../../index.js')
-const config = require('../config/config.json')
+const config = require('../config/config.js')
 const color = require('../colors.js')
 const wcaGuild = require('../guild.js')
 const wcaCore = require('./core.js')
@@ -25,7 +25,7 @@ onMessage.onMessage = function (message, messageString, messageMotd, messageAnsi
       // COMMENT: Regex for messages in hub that don't fire the login event.
       const compassCheckErrors = /(Failed to send you to target server. So we're sending you back.|Could not connect to a default or fallback server, please try again later: io.netty.channel.ConnectTimeoutException|You are already connected to this server!|The server is full!|.* left the game.|<\w+> .*)/
       // COMMENT: Regex for server restarts.
-      const serverRestartRegex = /(The server is restarting in (10|\d) (minute|second)s?\.|Server restarting!|The server you were previously on went down, you have been connected to a fallback server|Server closed)/
+      const serverRestartRegex = /(The server is restarting in (2|1|30) (minute|second)s?\.|Server restarting!|The server you were previously on went down, you have been connected to a fallback server|Server closed)/
       // COMMENT: Regex for bombs.
       const bombThankRegex = /Want to thank (.+)\? Click here to thank them!/
       // COMMENT: Regex for joining a world.
@@ -40,6 +40,7 @@ onMessage.onMessage = function (message, messageString, messageMotd, messageAnsi
         // onKick('server_restart')
         wcaCore.hub('Server_Restart')
       } else if (bombThankRegex.test(messageString)) {
+        if (config.state.ignoreBombs) return
         // COMMENT: get off the server if an bomb is thrown - some people do item bomb parties
         universal.timer.hubTimer = setTimeout(() => {
           log.log(`going to hub because bomb was thrown on ${universal.info.currentWorld}`)
@@ -57,8 +58,8 @@ onMessage.onMessage = function (message, messageString, messageMotd, messageAnsi
         const [, world] = matches
         universal.currentWorld = world
         universal.state.serverSwitch = true
-      } else if (config.guildTracker || config.shoutTracker || config.bombTracker) {
-        if (config.guildTracker) {
+      } else if (config.state.guildTracker || config.state.shoutTracker || config.state.bombTracker) {
+        if (config.state.guildTracker) {
           // COMMENT: Regex for guild message.
           const guildMessageRegex = /§r§3\[(?:|§r§b(★|★★|★★★|★★★★|★★★★★))§r§3(.*)\]§r§b (.*)§r/
           // COMMENT: Regex for guild members joining.
@@ -91,7 +92,7 @@ onMessage.onMessage = function (message, messageString, messageMotd, messageAnsi
             wcaGuild.territory(territory, time)
           }
         }
-        if (config.shoutTracker) {
+        if (config.state.shoutTracker) {
           // COMMENT: Regex for shout messages
           const shoutMessageRegex = /(\w+) \[(WC\d+)\] shouts: (.+)/
           if (shoutMessageRegex.test(messageString)) {
@@ -100,7 +101,7 @@ onMessage.onMessage = function (message, messageString, messageMotd, messageAnsi
             onMessage.logShout(fullMessage, username, world, shoutMessage)
           }
         }
-        if (config.bombTracker) {
+        if (config.state.bombTracker) {
           // COMMENT: Legacy regexes, motd is better because spoofing is impossible
           // const bombBellRegex = /\[Bomb Bell\] (.+) has thrown a (.+) Bomb on (WC\d+)/
           // const bombThrownRegex = /(\w+) has thrown a (.+) Bomb!.*/
@@ -129,6 +130,7 @@ onMessage.onMessage = function (message, messageString, messageMotd, messageAnsi
             log.log(`going to hub because bomb was thrown on ${universal.info.currentWorld}`)
             wcaBomb.logBomb(fullMessage, username, bomb, universal.info.currentWorld)
             // COMMENT: go to hub
+            if (config.state.ignoreBombs) return
             wcaCore.hub('Bomb')
           } else if (bombThrownRegex.test(messageMotd)) {
             const matches = bombThrownRegex.exec(messageMotd)
@@ -137,6 +139,7 @@ onMessage.onMessage = function (message, messageString, messageMotd, messageAnsi
             log.log(`going to hub because bomb was thrown on ${universal.info.currentWorld}`)
             wcaBomb.logBomb(fullMessage, username, bomb, universal.info.currentWorld)
             // COMMENT: go to hub
+            if (config.state.ignoreBombs) return
             wcaCore.hub('Bomb')
           }
         }
@@ -149,6 +152,7 @@ onMessage.onBossBarUpdated = function (bossBar) {
   const bombBarRegex = /(.+) from (.+) \[(\d+) min\]/
   const bossBarString = color.stripthes(bossBar.title.text)
   if (bombBarRegex.test(bossBarString)) {
+    if (config.state.ignoreBombs) return
     clearTimeout(universal.timer.hubTimer)
     log.log(`going to hub because bomb was detected on BossBar on ${universal.info.currentWorld}`)
     wcaCore.hub('Bomb_BossBar')
@@ -156,6 +160,6 @@ onMessage.onBossBarUpdated = function (bossBar) {
 }
 onMessage.logShout = function (fullMessage, username, world, shoutMessage) {
   // COMMENT: Custom Shout Message Formatting
-  client.guilds.cache.get(config.guildid).channels.cache.get(config.shoutChannel).send(`[${new Date(Date.now()).toLocaleTimeString('en-US')}]` + ` [${world}] \`${username}\`: \`${shoutMessage}\``)
+  client.guilds.cache.get(config.discord.guildid).channels.cache.get(config.discord.shout.channel).send(`[${new Date(Date.now()).toLocaleTimeString('en-US')}]` + ` [${world}] \`${username}\`: \`${shoutMessage}\``)
 }
 module.exports = onMessage

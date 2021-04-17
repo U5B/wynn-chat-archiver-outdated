@@ -1,4 +1,4 @@
-const config = require('../config/config')
+const config = require('../config/config.js')
 const universal = require('../universal')
 const log = require('../logging')
 const simplediscord = require('../simplediscord')
@@ -22,7 +22,7 @@ onEnd.onKick = async function (reason, loggedIn) {
     if (universal.droid != null) universal.droid.quit()
     log.warn('Disconnected due to process dying.')
 
-    simplediscord.sendDate(config.statusChannel, `${config.processEndMessage} <@!${config.masterDiscordUser}>`)
+    simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.processEndMessage} <@!${config.discord.admin.masterUser}>`)
     client.user.setStatus('invisible')
     await universal.sleep(5000)
     log.error('Exiting process NOW')
@@ -30,16 +30,16 @@ onEnd.onKick = async function (reason, loggedIn) {
   } else if (kickReason === 'server_restart') {
     log.warn('Disconnected due to server restart.')
 
-    simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`Server Restart\` <@!${config.masterDiscordUser}>`)
+    simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`Server Restart\` <@!${config.discord.admin.masterUser}>`)
     onEnd.onRestart()
   } else if (kickReason === '{"text":"ReadTimeoutException : null"}') {
     universal.state.disconnected = false
-    simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`${reason}\` [AutoRestart] <@!${config.masterDiscordUser}>`)
+    simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` [AutoRestart] <@!${config.discord.admin.masterUser}>`)
   } else if (kickReason === '{"text":"Could not connect to a default or fallback server, please try again later: io.netty.channel.ConnectTimeoutException","color":"red"}') {
     universal.state.disconnected = false
-    simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`${reason}\` [AutoRestart] <@!${config.masterDiscordUser}>`)
+    simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` [AutoRestart] <@!${config.discord.admin.masterUser}>`)
   } else {
-    simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
+    simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
   }
 }
 onEnd.onEnd = async function (reason) {
@@ -57,13 +57,13 @@ onEnd.onEnd = async function (reason) {
   // clearInterval(npcInterval)
   log.error(`DisconnectReason: "${reason}" || DisconnectState: "${universal.state.disconnected}"`)
   if (!universal.state.disconnected) {
-    simplediscord.sendDate(config.statusChannel, `${config.kickMessage} \`Disconnected...\` <@!${config.masterDiscordUser}>`)
+    simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`Disconnected...\` <@!${config.discord.admin.masterUser}>`)
     log.warn('Disconnected. Attempting to reconnect...')
     onEnd.onRestart()
   }
 }
 onEnd.onRestart = async function (state) {
-  simplediscord.sendTime(config.statusChannel, `${config.restartWCA}`)
+  simplediscord.sendTime(config.discord.log.statusChannel, `${config.msg.restartWCA}`)
   universal.state.disconnected = false
   clearTimeout(universal.timer.cancelLoginTimer)
   universal.droid.quit()

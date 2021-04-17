@@ -13,7 +13,7 @@ fileCheck.fileCheck()
 // COMMENT: other files
 
 // SECTION: all of the configs I need and wynncraft api
-const config = require('./modules/config/config.json')
+const config = require('./modules/config/config.js')
 const cred = require('./modules/config/cred.json')
 // COMMENT: "global" variables
 const log = require('./modules/logging')
@@ -25,9 +25,9 @@ exports.client = client
 
 client.once('ready', async () => {
   // COMMENT: I am fancy and want the title to be WCA once it is logged into discord.
-  process.title = config.processTitle ? config.processTitle : 'Wynn Chat Archive'
+  process.title = config.debug.title ? config.debug.title : 'Wynn Chat Archive'
   log.warn(`Logged into Discord as ${client.user.tag}`)
-  await client.guilds.cache.get(config.guildid).channels.cache.get(config.bombChannel).bulkDelete(100) // COMMENT: how do you delete specific messages after a certain time
+  await client.guilds.cache.get(config.discord.guildid).channels.cache.get(config.discord.bomb.channel).bulkDelete(100) // COMMENT: how do you delete specific messages after a certain time
   login()
   // COMMENT: run this function whenever I recieve a discord message
   client.on('message', async message => {
@@ -35,9 +35,9 @@ client.once('ready', async () => {
   })
 })
 function login () {
-  const version = config.version
-  const ip = process.argv[4] ? process.argv[4] : config.ip
-  const port = process.argv[5] ? process.argv[5] : config.port
+  const version = config.droid.version
+  const ip = process.argv[4] ? process.argv[4] : config.droid.ip
+  const port = process.argv[5] ? process.argv[5] : config.droid.port
   const user = process.argv[2] ? process.argv[2] : cred.username
   const pass = process.argv[3] ? process.argv[3] : cred.password
   universal.droid = mineflayer.createBot({
@@ -96,9 +96,9 @@ const discordCommands = require('./modules/discord')
 async function runDiscord (message) {
   // COMMENT: if message doesn't start with the prefix, message author is WCA
   if (message.author.bot) return
-  if (message.content.startsWith(config.prefix)) {
+  if (message.content.startsWith(config.discord.prefix)) {
     // COMMENT: Discord commands
-    const args = message.content.slice(config.prefix.length).trim().split(/ +/)
+    const args = message.content.slice(String(config.discord.prefix).length).trim().split(/ +/)
     const command = args.shift().toLowerCase()
     const cmd = discordCommands.commands[command]
     if (cmd && discordCommands.checkPermissions(cmd, message)) {

@@ -3,7 +3,7 @@ const util = require('util')
 const path = require('path')
 
 const color = require('./colors.js')
-const config = require('./config/config.json')
+const config = require('./config/config.js')
 const debug = {
   chat: require('debug')('CHAT'),
   log: require('debug')('LOG'),
@@ -49,7 +49,7 @@ const log = {
     const text = util.format.apply(this, arguments) + '\n'
     const chat = util.format.apply(this, arguments)
     ds.write(`[${new Date(Date.now()).toLocaleString('en-US')}]` + ' [LOG] ' + text) // COMMENT: write to log formatted
-    if (config.debug) {
+    if (config.debug.debug) {
       ls.write(`[${new Date(Date.now()).toLocaleString('en-US')}]` + ' [LOG] ' + color.stripthes(text)) // COMMENT: write to log unformatted
       debug.log(`[${new Date(Date.now()).toLocaleString('en-US')}]` + ' ' + chat)
       // process.stdout.write(`[${new Date(Date.now()).toLocaleString('en-US')}]` + ' [LOG] ' + text)
@@ -75,7 +75,7 @@ const log = {
     const text = util.format.apply(this, arguments) + '\n'
     const chat = util.format.apply(this, arguments)
     ds.write(`[${new Date(Date.now()).toLocaleString('en-US')}]` + ' [DBUG] ' + text) // COMMENT: write to log formatted
-    if (config.debug) {
+    if (config.debug.debug) {
       debug.debug(`[${new Date(Date.now()).toLocaleString('en-US')}]` + ' ' + chat)
       // process.stdout.write(`[${new Date(Date.now()).toLocaleString('en-US')}]` + ' [DEBUG] ' + text)
     }

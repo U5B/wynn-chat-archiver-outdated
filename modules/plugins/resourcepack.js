@@ -1,4 +1,4 @@
-const config = require('../config/config.json')
+const config = require('../config/config.js')
 const universal = require('../universal.js')
 const log = require('../logging.js')
 const simplediscord = require('../simplediscord.js')
@@ -7,7 +7,7 @@ const resourcePack = {}
 let resourcePackSendListener
 resourcePack.resourcePackAccept = function () {
   log.warn('Connected && Loading Resource Pack...')
-  simplediscord.sendTime(config.statusChannel, `${config.resourcePack}`)
+  simplediscord.sendTime(config.discord.log.statusChannel, `${config.msg.resourcePack}`)
   universal.state.compassCheck = false
   // COMMENT: resoucePackLoading is used for waiting for the resource pack to load
   universal.state.serverSwitch = true

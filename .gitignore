@@ -2,12 +2,6 @@ node_modules/
 package-lock.json
 
 modules/api/
-modules/config/
+modules/config/config.json
+modules/config/cred.json
 logs/
-
-cred.json
-config.json
-
-territorylocations.json
-WCStats.json
-WCStatsGen.js

@@ -1,11 +1,10 @@
-const config = require('../../../config/config.json')
-
+const config = require('../../../config/config.js')
 module.exports = {
   name: 'help',
   description: 'returns this help message',
   permissionRoles: [],
-  allowedRoles: [config.masterDiscordRole, config.trustedDiscordRole],
-  allowedChannels: [config.commandChannel],
+  allowedRoles: [config.discord.admin.masterRole, config.discord.admin.trustedRole],
+  allowedChannels: [config.discord.log.commandChannel],
   execute (message) {
     const publicMessage = `Everyone:
     null = returns null

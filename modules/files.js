@@ -1,4 +1,4 @@
-const config = require('./config/config.json')
+const config = require('./config/config.js')
 const universal = require('./universal.js')
 const api = require('./api.js')
 const log = require('./logging')
@@ -45,11 +45,11 @@ files.getBombStats = function getBombStats (world, statsInput) {
   // QUOTE: "this could be done so much better" - U9G
   // COMMENT: read WCStats and get some bomb stats
   const parsed = universal.api.WCStats
-  const combatXPEmoji = config.combatXPEmoji ? config.combatXPEmoji : '💣'
-  const lootEmoji = config.lootEmoji ? config.lootEmoji : '💣'
-  const dungeonEmoji = config.dungeonEmoji ? config.dungeonEmoji : '💣'
-  const professionSpeedEmoji = config.professionSpeedEmoji ? config.professionSpeedEmoji : '💣'
-  const professionXPEmoji = config.professionXPEmoji ? config.professionXPEmoji : '💣'
+  const combatXPEmoji = config.discord.bomb.combatXPEmoji ? config.discord.bomb.combatXPEmoji : '💣'
+  const lootEmoji = config.discord.bomb.lootEmoji ? config.discord.bomb.lootEmoji : '💣'
+  const dungeonEmoji = config.discord.bomb.dungeonEmoji ? config.discord.bomb.dungeonEmoji : '💣'
+  const professionSpeedEmoji = config.discord.bomb.professionSpeedEmoji ? config.discord.bomb.professionSpeedEmoji : '💣'
+  const professionXPEmoji = config.discord.bomb.professionXPEmoji ? config.discord.bomb.professionXPEmoji : '💣'
   let worldStats
   if (!parsed[`${world}`]) {
     worldStats = null
