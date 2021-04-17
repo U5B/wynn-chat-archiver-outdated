@@ -17,7 +17,8 @@ module.exports = {
     bombTracker: config.bombTracker,
     guildTracker: config.guildTracker,
     shoutTracker: config.shoutTracker,
-    ignoreBombs: config.ignoreBombs
+    ignoreBombs: config.ignoreBombs,
+    housingTracker: config.housingTracker
   },
   msg: {
     hubMessage: config.hubMessage,

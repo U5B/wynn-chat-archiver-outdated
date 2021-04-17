@@ -2,6 +2,7 @@ const config = require('../config/config.js')
 const universal = require('../universal')
 const log = require('../logging')
 const simplediscord = require('../simplediscord')
+const housing = require('./housing.js')
 
 const wcaCore = {}
 wcaCore.hub = function (message, force) {
@@ -58,8 +59,7 @@ wcaCore.onWindowOpen = async function (window) {
     universal.state.compassCheck = true
     log.log('Clicked recommended slot.')
   } else if (windowText === 'Go to house') {
-    await universal.sleep(500)
-    await universal.droid.clickWindow(11, 0, 0)
+    housing.clickSlot()
   } else if (windowText === '§8§lSelect a Class') {
     log.error(`somehow in class menu "${windowText}" going to hub - use /toggle autojoin`)
     log.debug(window.slots)
@@ -101,6 +101,9 @@ wcaCore.onWorldJoin = function (username, world, wynnclass) {
   log.log(`Online on ${world}`)
   simplediscord.sendTime(config.discord.log.statusChannel, `${config.msg.worldConnectMessage}`)
   simplediscord.status() // COMMENT: check discord status
+  if (config.state.housingTracker) {
+    housing.start()
+  }
 }
 wcaCore.lobbyError = function (reason) {
   if (reason == null) reason = ' '

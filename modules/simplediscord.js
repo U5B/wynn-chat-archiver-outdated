@@ -14,11 +14,13 @@ simplediscord.status = function status (status, state, message) {
   const onWynncraft = universal.state.onWynncraft
   const onAWorld = universal.state.onWorld
   const serverSwitch = universal.state.serverSwitch
-  const setPresence = (stat, active) => {
+  const onAHouse = universal.state.onHousing
+  const setPresence = (stat, active, emote) => {
     client.user.setPresence({
       status: stat,
       activity: {
-        name: active
+        name: active,
+        emoji: emote
       }
     })
   }
@@ -27,8 +29,10 @@ simplediscord.status = function status (status, state, message) {
   } else if (status === 'set') {
     setPresence(state, message)
   } else {
-    if (onWynncraft && onAWorld && !serverSwitch) {
+    if (onWynncraft && onAWorld && !serverSwitch && !onAHouse) {
       setPresence('online', 'archiving chat - play.wynncraft.com')
+    } else if (onWynncraft && onAWorld && !serverSwitch && onAHouse) {
+      setPresence('online', 'hosting house - play.wynncraft.com', '🏠')
     } else if (onWynncraft && !onAWorld && !serverSwitch) {
       setPresence('idle', 'in a lobby - play.wynncraft.com')
     } else if (onWynncraft && !onAWorld && serverSwitch) {

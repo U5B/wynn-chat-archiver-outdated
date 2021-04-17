@@ -106,7 +106,7 @@ async function runDiscord (message) {
     } else {
       switch (command) {
         case 'test': {
-          message.channel.send('wuwuhy')
+          message.channel.send('uwu')
           break
         }
         default: {

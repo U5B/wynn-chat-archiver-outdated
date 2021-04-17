@@ -8,6 +8,8 @@ const wcaResourcePack = require('./resourcepack.js')
 const universal = require('../universal.js')
 const log = require('../logging.js')
 const wcaBomb = require('../bomb.js')
+const wcaHousing = require('../plugins/housing.js')
+const housing = require('../plugins/housing.js')
 
 onMessage.onMessage = function (message, messageString, messageMotd, messageAnsi) {
   universal.info.realIGN = undefined
@@ -25,7 +27,7 @@ onMessage.onMessage = function (message, messageString, messageMotd, messageAnsi
       // COMMENT: Regex for messages in hub that don't fire the login event.
       const compassCheckErrors = /(Failed to send you to target server. So we're sending you back.|Could not connect to a default or fallback server, please try again later: io.netty.channel.ConnectTimeoutException|You are already connected to this server!|The server is full!|.* left the game.|<\w+> .*)/
       // COMMENT: Regex for server restarts.
-      const serverRestartRegex = /(The server is restarting in (2|1|30) (minute|second)s?\.|Server restarting!|The server you were previously on went down, you have been connected to a fallback server|Server closed)/
+      const serverRestartRegex = /(The server is restarting in (1|30) (minute|second)s?\.|Server restarting!|The server you were previously on went down, you have been connected to a fallback server|Server closed)/
       // COMMENT: Regex for bombs.
       const bombThankRegex = /Want to thank (.+)\? Click here to thank them!/
       // COMMENT: Regex for joining a world.
@@ -58,7 +60,7 @@ onMessage.onMessage = function (message, messageString, messageMotd, messageAnsi
         const [, world] = matches
         universal.currentWorld = world
         universal.state.serverSwitch = true
-      } else if (config.state.guildTracker || config.state.shoutTracker || config.state.bombTracker) {
+      } else if (config.state.guildTracker || config.state.shoutTracker || config.state.bombTracker || config.state.housingTracker) {
         if (config.state.guildTracker) {
           // COMMENT: Regex for guild message.
           const guildMessageRegex = /§r§3\[(?:|§r§b(★|★★|★★★|★★★★|★★★★★))§r§3(.*)\]§r§b (.*)§r/
@@ -141,6 +143,30 @@ onMessage.onMessage = function (message, messageString, messageMotd, messageAnsi
             // COMMENT: go to hub
             if (config.state.ignoreBombs) return
             wcaCore.hub('Bomb')
+          }
+        }
+        if (config.state.housingTracker) {
+          const housingJoinRegex = /You have flown to your housing island./
+          const housingLeaveRegex = /You have flown to your original position./
+          const housingPlayerJoinRegex = /(\w+) is visiting this island. Say hi!/
+          const housingPlayerLeaveRegex = /(\w+) left this island./
+          const housingPublicRegex = /Your house is now (\w+),.*/
+          if (housingJoinRegex.test(messageString)) {
+            wcaHousing.join()
+          } else if (housingLeaveRegex.test(messageString)) {
+            wcaHousing.leave()
+          } else if (housingPlayerJoinRegex.test(messageString)) {
+            const matches = housingPlayerJoinRegex.exec(messageString)
+            const [, player] = matches
+            housing.playerJoin(player)
+          } else if (housingPlayerLeaveRegex.test(messageString)) {
+            const matches = housingPlayerLeaveRegex.exec(messageString)
+            const [, player] = matches
+            housing.playerLeave(player)
+          } else if (housingPublicRegex.test(messageString)) {
+            const matches = housingPublicRegex.exec(messageString)
+            const [, state] = matches
+            housing.housePublic(state)
           }
         }
       }

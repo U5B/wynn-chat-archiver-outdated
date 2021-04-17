@@ -12,6 +12,7 @@ const wcaOnMessage = require('./modules/plugins/onMessage')
 const universal = require('./modules/universal')
 const events = require('./modules/plugins/events')
 const wcaNPC = require('./modules/plugins/npc')
+const wcaHousing = require('./modules/plugins/housing')
 
 module.exports = {
   universal: universal,
@@ -20,6 +21,7 @@ module.exports = {
   log: log,
   files: files,
   wca: {
+    housing: wcaHousing,
     npc: wcaNPC,
     events: events,
     bomb: wcaBomb,

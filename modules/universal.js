@@ -14,6 +14,8 @@ module.exports = {
     disconnected: false,
     onWynncraft: false,
     onWorld: false,
+    onHousing: false,
+    housingPublic: false,
     loadResourcePack: false,
     compassCheck: false,
     serverSwitch: false
