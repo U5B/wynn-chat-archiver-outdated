@@ -120,7 +120,7 @@ onMessage.onMessage = function (message, messageString, messageMotd, messageAnsi
             if (universal.info.realIGN != null) username = universal.info.realIGN
             wcaBomb.logBomb(fullMessage, username, bomb, world)
           } else if (bombBellRegex.test(messageMotd)) {
-            const matches = bombBellNickedRegex.exec(messageMotd)
+            const matches = bombBellRegex.exec(messageMotd)
             const [fullMessage, username, bomb, world] = matches
             wcaBomb.logBomb(fullMessage, username, bomb, world)
           } else if (bombThrownNickedRegex.test(messageMotd)) {
