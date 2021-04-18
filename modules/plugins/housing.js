@@ -1,27 +1,29 @@
 const housing = {}
-let playerArray = []
 const universal = require('../universal.js')
 const log = require('../logging.js')
 const config = require('../config/config.js')
 const simplediscord = require('../simplediscord.js')
 
 housing.start = async function () {
-  if (universal.state.onHousing || !universal.state.onWynncraft || !universal.state.onWorld) return
-  await universal.sleep(1500)
-  log.debug(universal.droid.nearestEntity())
+  if (universal.state.housing.online || !universal.state.onlineWynn || !universal.state.onlineWorld) return
+  // log.debug(universal.droid.nearestEntity())
   housing.clickSlime(455, -1570.5)
+}
+housing.restart = async function () {
+  housing.leave(true)
+  await universal.sleep(3000)
+  housing.start()
 }
 housing.join = async function () {
   // You have flown to your housing island.
-  simplediscord.sendTime(config.discord.log.statusChannel, ' 🏠 Joined housing.')
-  universal.state.onHousing = true
-  playerArray.push(universal.info.droidIGN)
+  simplediscord.sendTime(config.discord.log.statusChannel, ' 🏠 **Joined House.**')
+  universal.state.housing.online = true
+  universal.state.housing.playerList.push(universal.info.droidIGN)
   simplediscord.status()
   await universal.sleep(1000)
   universal.droid.chat('/housing public')
   await universal.sleep(500)
-  if (universal.housingPublic) universal.droid.chat('/housing public')
-  housing.playerInvite(config.droid.master)
+  if (universal.state.housing.public) universal.droid.chat('/housing public')
 }
 housing.leave = async function (force) {
   // You have flown to your original position.
@@ -30,11 +32,11 @@ housing.leave = async function (force) {
     await universal.sleep(500)
     universal.droid.chat('/housing leave')
   } else {
-    playerArray = playerArray.filter(p => p !== universal.info.droidIGN)
-    simplediscord.sendTime(config.discord.log.statusChannel, ' 🏠 Left housing.')
+    universal.state.housing.playerList = []
+    simplediscord.sendTime(config.discord.log.statusChannel, ' 🏠 **Left House.**')
     simplediscord.status()
   }
-  universal.state.onHousing = false
+  universal.state.housing.online = false
 }
 housing.clickSlime = async function (entityPositionX, entityPositionZ) {
   // COMMENT: Detlas housing: x: 455, y: 67.5, z:-1570.5
@@ -45,12 +47,7 @@ housing.clickSlime = async function (entityPositionX, entityPositionZ) {
   if (target) {
     log.debug('found')
     await universal.droid.lookAt(target.position.offset(0, target.height / 2, 0))
-    if (!universal.droid.blockAtCursor(3)) {
-      universal.droid.attack(target)
-    } else {
-      log.error('Obstruction found')
-      universal.droid.look(Math.PI, 0)
-    }
+    universal.droid.attack(target)
   } else {
     log.error('not found')
   }
@@ -62,18 +59,19 @@ housing.clickSlot = async function () {
 }
 housing.playerJoin = function (player) {
   // U5B_ is visiting this island. Say hi!
-  playerArray.push(String(player))
+  universal.state.housing.playerList.push(String(player))
   housing.ignoreBombs()
-  log.debug(playerArray)
+  log.debug(universal.state.housing.playerList)
 }
 housing.playerLeave = function (player) {
   // U5B_ left this island.
-  playerArray = playerArray.filter(p => p !== player)
+  universal.state.housing.playerList = universal.state.housing.playerList.filter(p => p !== player)
   housing.ignoreBombs()
-  log.debug(playerArray)
+  log.debug(universal.state.housing.playerList)
 }
 housing.playerInvite = function (player, all) {
   if (all === true) {
+    if (universal.state.housing.public) return
     universal.droid.chat('/housing public')
   } else {
     universal.droid.chat(`/housing invite ${player}`)
@@ -82,7 +80,7 @@ housing.playerInvite = function (player, all) {
 housing.playerEdit = function (player, allow) {
   if (allow === true) {
     universal.droid.chat(`/housing allowedit ${player}`)
-  } else {
+  } else if (allow === false) {
     universal.droid.chat(`/housing disallowedit ${player}`)
   }
 }
@@ -96,32 +94,35 @@ housing.playerKick = function (player, all) {
 housing.playerBan = function (player, unban) {
   if (unban === true) {
     universal.droid.chat(`/housing unban ${player}`)
-  } else {
+  } else if (unban === false) {
     universal.droid.chat(`/housing ban ${player}`)
+  } else {
+    log.debug(`player: ${player} | unban: ${unban}`)
   }
 }
 housing.housePublic = function (state) {
   if (state === 'private') {
-    universal.state.housingPublic = false
+    universal.state.housing.public = false
+  } else if (state === 'public') {
+    universal.state.housing.public = true
   } else {
-    universal.state.housingPublic = true
+    log.debug(state)
   }
 }
 housing.public = function (state) {
   if (state === true) {
-    if (universal.state.housingPublic === true) return
+    if (universal.state.housing.public === true) return
     universal.droid.chat('/housing public')
-  } else {
-    if (universal.state.housingPublic === false) return
+  } else if (state === false) {
+    if (universal.state.housing.public === false) return
     universal.droid.chat('/housing public')
   }
 }
 housing.ignoreBombs = function () {
-  if (playerArray.length > 1) {
+  if (universal.state.housing.playerList.length > 1) {
     config.state.ignoreBombs = true
   } else {
     config.state.ignoreBombs = false
   }
-  log.debug(config.state.ignoreBombs)
 }
 module.exports = housing

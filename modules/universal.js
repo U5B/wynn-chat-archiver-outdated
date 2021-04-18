@@ -11,12 +11,14 @@ module.exports = {
     droidNickedIGN: undefined
   },
   state: {
+    housing: {
+      online: false,
+      public: false,
+      playerList: []
+    },
     disconnected: false,
-    onWynncraft: false,
-    onWorld: false,
-    onHousing: false,
-    housingPublic: false,
-    loadResourcePack: false,
+    onlineWynn: false,
+    onlineWorld: false,
     compassCheck: false,
     serverSwitch: false
   },

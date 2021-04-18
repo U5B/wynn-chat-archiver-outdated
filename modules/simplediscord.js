@@ -11,10 +11,10 @@ simplediscord.sendDate = function sendDate (channel, message) {
   client.guilds.cache.get(config.discord.guildid).channels.cache.get(channel).send(`[${new Date(Date.now()).toLocaleString('en-US')}] ${message}`)
 }
 simplediscord.status = function status (status, state, message) {
-  const onWynncraft = universal.state.onWynncraft
-  const onAWorld = universal.state.onWorld
+  const onWynncraft = universal.state.onlineWynn
+  const onAWorld = universal.state.onlineWorld
   const serverSwitch = universal.state.serverSwitch
-  const onAHouse = universal.state.onHousing
+  const onAHouse = universal.state.housing.online
   const setPresence = (stat, active, emote) => {
     client.user.setPresence({
       status: stat,

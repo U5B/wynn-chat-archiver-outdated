@@ -49,8 +49,8 @@ onEnd.onEnd = async function (reason) {
     universal.droid.quit()
   }
   // COMMENT: Shut down when kicked or disconnected
-  universal.state.onWynncraft = false
-  universal.state.onWorld = false
+  universal.state.onlineWynn = false
+  universal.state.onlineWorld = false
   universal.state.serverSwitch = false
   simplediscord.status() // COMMENT: check discord status // COMMENT: check discord status
   clearInterval(universal.timer.cancelCompassTimer)

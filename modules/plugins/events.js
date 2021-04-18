@@ -9,7 +9,7 @@ events.onceLogin = function () {
   log.warn('Connected to Wynncraft.')
   // COMMENT: onWynncraft is set to true on startup
   universal.state.disconnected = false
-  universal.state.onWynncraft = true
+  universal.state.onlineWynn = true
   universal.info.droidIGN = universal.droid.username
 
   simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.firstConnectMessage}`)
@@ -18,7 +18,7 @@ events.onLogin = function () {
   log.log('Login event fired.')
   clearInterval(universal.timer.cancelCompassTimer)
   // COMMENT: onAWorld is used for whenever the WCA successfully logs into a world that isn't the hub
-  universal.state.onWorld = false
+  universal.state.onlineWorld = false
   universal.state.serverSwitch = false
   // COMMENT: clear any compass checks
   // COMMENT: fallback to WC0 until the world is online

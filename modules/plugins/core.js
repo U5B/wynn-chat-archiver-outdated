@@ -6,7 +6,7 @@ const housing = require('./housing.js')
 
 const wcaCore = {}
 wcaCore.hub = function (message, force) {
-  if (universal.state.onWorld || force) {
+  if (universal.state.onlineWorld || force) {
     simplediscord.sendTime(config.discord.log.statusChannel, `${config.msg.hubMessage} [${message}] <@!${config.discord.admin.masterUser}>`)
     universal.droid.chat('/hub')
   }
@@ -19,7 +19,7 @@ wcaCore.compass = async function (reason) {
     await universal.sleep(1000)
   }
   // COMMENT: If already on a world, loading the resource pack or is has been kicked from the server, then do nothing
-  if (universal.state.onWorld || !universal.state.onWynncraft || universal.state.serverSwitch) return
+  if (universal.state.onlineWorld || !universal.state.onlineWynn || universal.state.serverSwitch) return
   log.log('Checking compass')
   universal.droid.setQuickBarSlot(0)
   // COMMENT: assume that it is slightly stuck if the held item is nothing
@@ -41,7 +41,7 @@ wcaCore.compass = async function (reason) {
       // COMMENT: retry on lobby or restart if hub is broken
       await compassActivate()
       universal.timer.cancelCompassTimer = setInterval(() => {
-        if (universal.state.onWynncraft && !universal.state.onWorld && !universal.state.serverSwitch) {
+        if (universal.state.onlineWynn && !universal.state.onlineWorld && !universal.state.serverSwitch) {
           compassActivate()
         }
       }, 10000)
@@ -94,7 +94,7 @@ wcaCore.chatLog = function (message, messageString, excludeSpam) {
 }
 wcaCore.onWorldJoin = function (username, world, wynnclass) {
   // COMMENT: Your now on a world - you have stopped loading resource pack lol
-  universal.state.onWorld = true
+  universal.state.onlineWorld = true
   universal.state.serverSwitch = false
   // COMMENT: Set the currentWorld to the current World instead of WC0
   universal.info.currentWorld = world
@@ -102,12 +102,13 @@ wcaCore.onWorldJoin = function (username, world, wynnclass) {
   simplediscord.sendTime(config.discord.log.statusChannel, `${config.msg.worldConnectMessage}`)
   simplediscord.status() // COMMENT: check discord status
   if (config.state.housingTracker && config.state.autoJoinHousing) {
+    universal.sleep(1500)
     housing.start()
   }
 }
 wcaCore.lobbyError = function (reason) {
   if (reason == null) reason = ' '
-  if (universal.state.onWorld || universal.state.serverSwitch) {
+  if (universal.state.onlineWorld || universal.state.serverSwitch) {
     wcaCore.hub(reason, true)
   } else {
     wcaCore.compass(reason)

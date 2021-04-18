@@ -25,7 +25,7 @@ resourcePack.resourcePackAccept = function () {
     log.log('Wynnpack accepted.')
     // COMMENT: Your now on a world - you have stopped loading resource pack lol
     // COMMENT: fire this in-case the online indicator doesn't fire ;-;
-    universal.state.onWorld = true
+    universal.state.onlineWorld = true
     universal.state.serverSwitch = false
   }
   universal.droid._client.once('resource_pack_send', resourcePackSendListener)
