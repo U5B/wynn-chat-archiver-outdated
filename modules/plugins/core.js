@@ -101,7 +101,7 @@ wcaCore.onWorldJoin = function (username, world, wynnclass) {
   log.log(`Online on ${world}`)
   simplediscord.sendTime(config.discord.log.statusChannel, `${config.msg.worldConnectMessage}`)
   simplediscord.status() // COMMENT: check discord status
-  if (config.state.housingTracker) {
+  if (config.state.housingTracker && config.state.autoJoinHousing) {
     housing.start()
   }
 }

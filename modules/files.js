@@ -81,6 +81,7 @@ files.getBombLeaderboard = function getBombLeaderboard (input) {
 files.writeBombStats = function writeBombStats (world, bomb) {
   // QUOTE: "this could be done so much better" - U9G
   // COMMENT: Add +1 to a specific bomb on a world
+  if (!universal.api.WCStats[world]) return
   log.log(`${world}: ${bomb}`)
   universal.api.WCStats[world][bomb]++
   api.WCStats.write()

@@ -39,15 +39,20 @@ housing.leave = async function (force) {
 housing.clickSlime = async function (entityPositionX, entityPositionZ) {
   // COMMENT: Detlas housing: x: 455, y: 67.5, z:-1570.5
   universal.droid.physics.yawSpeed = 12.0
-  const filter = entity => entity.name === 'slime' && entity.position.x === entityPositionX && entity.position.z === entityPositionZ
+  const filter = entity => entity.name === 'slime' && entity.position.x === entityPositionX && entity.position.z === entityPositionZ && entity.position.distanceTo(universal.droid.entity.position) < 6
   const target = universal.droid.nearestEntity(filter)
   log.debug(universal.droid.nearestEntity())
   if (target) {
     log.debug('found')
-    await universal.droid.lookAt(target.position.offset(0, 0.5, 0))
-    universal.droid.attack(target)
+    await universal.droid.lookAt(target.position.offset(0, target.height / 2, 0))
+    if (!universal.droid.blockAtCursor(3)) {
+      universal.droid.attack(target)
+    } else {
+      log.error('Obstruction found')
+      universal.droid.look(Math.PI, 0)
+    }
   } else {
-    log.debug('not found')
+    log.error('not found')
   }
 }
 // COMMENT: used in onWindowOpen

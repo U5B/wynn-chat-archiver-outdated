@@ -18,7 +18,8 @@ module.exports = {
     guildTracker: config.guildTracker,
     shoutTracker: config.shoutTracker,
     ignoreBombs: config.ignoreBombs,
-    housingTracker: config.housingTracker
+    housingTracker: config.housingTracker,
+    autoJoinHousing: config.autoJoinHousing
   },
   msg: {
     hubMessage: config.hubMessage,
