@@ -38,7 +38,7 @@ housing.leave = async function (force) {
 }
 housing.clickSlime = async function (entityPositionX, entityPositionZ) {
   // COMMENT: Detlas housing: x: 455, y: 67.5, z:-1570.5
-  universal.droid.physics.yawSpeed = 12.0
+  universal.droid.physics.yawSpeed = 8.0
   const filter = entity => entity.name === 'slime' && entity.position.x === entityPositionX && entity.position.z === entityPositionZ && entity.position.distanceTo(universal.droid.entity.position) < 6
   const target = universal.droid.nearestEntity(filter)
   log.debug(universal.droid.nearestEntity())
