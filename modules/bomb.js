@@ -5,7 +5,7 @@ const files = require('./files.js')
 const Timer = require('easytimer.js').Timer
 const wcaBomb = {}
 
-wcaBomb.logBomb = function (fullMessage, username, bomb, world, timeLeft) {
+wcaBomb.logBomb = function (fullMessage, username, bomb, world) {
   // COMMENT: track some explosions
   log.log(`${bomb} bomb logged`)
   const bombMessagePrefix = `[${new Date(Date.now()).toLocaleTimeString('en-US')}]` + ''
@@ -15,12 +15,7 @@ wcaBomb.logBomb = function (fullMessage, username, bomb, world, timeLeft) {
   const playerCountMax = '40'
   // COMMENT: Sort the bombs
   if (bomb === 'Combat XP') {
-    let bombTime
-    if (timeLeft === null) {
-      bombTime = 20 // COMMENT: duration in minutes of the bomb when thrown (Combat XP is 20 minutes)
-    } else {
-      bombTime = timeLeft
-    }
+    const bombTime = 20
     const bombRole = config.discord.bomb.combatXPRole ? config.discord.bomb.combatXPRole : '[Combat XP]'
     const bombEmoji = config.discord.bomb.combatXPEmoji ? config.discord.bomb.combatXPEmoji : '💣'
     const bombChannel = config.discord.bomb.combatXPChannel ? config.discord.bomb.combatXPChannel : config.discord.bomb.channel
@@ -32,12 +27,7 @@ wcaBomb.logBomb = function (fullMessage, username, bomb, world, timeLeft) {
         bombCountDown(msg, sentBombMessage, bombTime, world, playerCountMax)
       })
   } else if (bomb === 'Dungeon') {
-    let bombTime
-    if (timeLeft === null) {
-      bombTime = 10
-    } else {
-      bombTime = timeLeft
-    }
+    const bombTime = 10
     const bombRole = config.discord.bomb.dungeonRole ? config.discord.bomb.dungeonRole : '[Dungeon]'
     const bombEmoji = config.discord.bomb.dungeonEmoji ? config.discord.bomb.dungeonEmoji : '💣'
     const bombChannel = config.discord.bomb.dungeonChannel ? config.discord.bomb.dungeonChannel : config.discord.bomb.channel
@@ -48,12 +38,7 @@ wcaBomb.logBomb = function (fullMessage, username, bomb, world, timeLeft) {
         bombCountDown(msg, sentBombMessage, bombTime, world, playerCountMax)
       })
   } else if (bomb === 'Loot') {
-    let bombTime
-    if (timeLeft === null) {
-      bombTime = 20
-    } else {
-      bombTime = timeLeft
-    }
+    const bombTime = 20
     const bombRole = config.discord.bomb.lootRole ? config.discord.bomb.lootRole : '[Loot]'
     const bombEmoji = config.discord.bomb.lootEmoji ? config.discord.bomb.lootEmoji : '💣'
     const bombChannel = config.discord.bomb.lootChannel ? config.discord.bomb.lootChannel : config.discord.bomb.channel
@@ -64,12 +49,7 @@ wcaBomb.logBomb = function (fullMessage, username, bomb, world, timeLeft) {
         bombCountDown(msg, sentBombMessage, bombTime, world, playerCountMax)
       })
   } else if (bomb === 'Profession Speed') {
-    let bombTime
-    if (timeLeft === null) {
-      bombTime = 10
-    } else {
-      bombTime = timeLeft
-    }
+    const bombTime = 10
     const bombRole = config.discord.bomb.professionSpeedRole ? config.discord.bomb.professionSpeedRole : '[Profession Speed]'
     const bombEmoji = config.discord.bomb.professionSpeedEmoji ? config.discord.bomb.professionSpeedEmoji : '💣'
     const bombChannel = config.discord.bomb.professionSpeedChannel ? config.discord.bomb.professionSpeedChannel : config.discord.bomb.channel
@@ -80,12 +60,7 @@ wcaBomb.logBomb = function (fullMessage, username, bomb, world, timeLeft) {
         bombCountDown(msg, sentBombMessage, bombTime, world, playerCountMax)
       })
   } else if (bomb === 'Profession XP') {
-    let bombTime
-    if (timeLeft === null) {
-      bombTime = 20
-    } else {
-      bombTime = timeLeft
-    }
+    const bombTime = 20
     const bombRole = config.discord.bomb.professionXPRole ? config.discord.bomb.professionXPRole : '[Profession XP]'
     const bombEmoji = config.discord.bomb.professionXPEmoji ? config.discord.bomb.professionXPEmoji : '💣'
     const bombChannel = config.professionXPChannel ? config.discord.bomb.professionXPChannel : config.discord.bomb.channel
