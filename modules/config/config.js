@@ -48,7 +48,7 @@ module.exports = {
     bomb: {
       // COMMENT: Channels
       channel: config.bombChannel,
-      logBombChannel: config.logBombchannel,
+      logBombChannel: config.logBombChannel,
       combatXPChannel: config.combatXPChannel,
       dungeonChannel: config.dungeonChannel,
       lootChannel: config.lootChannel,
