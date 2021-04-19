@@ -115,31 +115,31 @@ onMessage.onMessage = function (message, messageString, messageMotd, messageAnsi
           const bombThrownNickedRegex = /§r§b§r§b§o(.+)§r§3 has thrown (?:a|an) §r§b(.+)§r§3.*/
           if (bombBellNickedRegex.test(messageMotd)) {
             const matches = bombBellNickedRegex.exec(messageMotd)
-            let [fullMessage, username, bomb, world] = matches
+            let [, username, bomb, world] = matches
             // COMMENT: Use their real username if they are a Champion nick
             if (universal.info.realIGN != null) username = universal.info.realIGN
-            wcaBomb.logBomb(fullMessage, username, bomb, world)
+            wcaBomb.logBomb(messageString, username, bomb, world)
           } else if (bombBellRegex.test(messageMotd)) {
             const matches = bombBellRegex.exec(messageMotd)
-            const [fullMessage, username, bomb, world] = matches
-            wcaBomb.logBomb(fullMessage, username, bomb, world)
+            const [, username, bomb, world] = matches
+            wcaBomb.logBomb(messageString, username, bomb, world)
           } else if (bombThrownNickedRegex.test(messageMotd)) {
             const matches = bombThrownNickedRegex.exec(messageMotd)
-            let [fullMessage, username, bomb] = matches
+            let [, username, bomb] = matches
             // COMMENT: Use their real username if they are a Champion nick
             if (universal.info.realIGN != null) username = universal.info.realIGN
             clearTimeout(universal.timer.hubTimer) // COMMENT: remove the timer if it is reported here
             log.log(`going to hub because bomb was thrown on ${universal.info.currentWorld}`)
-            wcaBomb.logBomb(fullMessage, username, bomb, universal.info.currentWorld)
+            wcaBomb.logBomb(messageString, username, bomb, universal.info.currentWorld)
             // COMMENT: go to hub
             if (config.state.ignoreBombs) return
             wcaCore.hub('Bomb')
           } else if (bombThrownRegex.test(messageMotd)) {
             const matches = bombThrownRegex.exec(messageMotd)
-            const [fullMessage, username, bomb] = matches
+            const [, username, bomb] = matches
             clearTimeout(universal.timer.hubTimer) // COMMENT: remove the timer if it is reported here
             log.log(`going to hub because bomb was thrown on ${universal.info.currentWorld}`)
-            wcaBomb.logBomb(fullMessage, username, bomb, universal.info.currentWorld)
+            wcaBomb.logBomb(messageString, username, bomb, universal.info.currentWorld)
             // COMMENT: go to hub
             if (config.state.ignoreBombs) return
             wcaCore.hub('Bomb')
