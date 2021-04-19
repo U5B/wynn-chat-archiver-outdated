@@ -73,20 +73,20 @@ onMessage.onMessage = function (message, messageString, messageMotd, messageAnsi
           if (guildMessageRegex.test(messageMotd)) {
             const matches = guildMessageRegex.exec(messageMotd)
             if (matches[2] === 'INFO') return
-            let [fullMessage, guildRank, guildUsername, guildMessage] = matches
+            let [, guildRank, guildUsername, guildMessage] = matches
             if (universal.info.realIGN != null) guildUsername = universal.info.realIGN
-            wcaGuild.guildMessage(fullMessage, guildRank, guildUsername, guildMessage)
+            wcaGuild.guildMessage(messageString, guildRank, guildUsername, guildMessage)
           } else if (guildJoinRegex.test(messageMotd)) {
             const matches = guildJoinRegex.exec(messageMotd)
             if (matches[1] === universal.droid.username) return
-            let [fullMessage, guildUsername, guildWorld, guildClass] = matches
+            let [, guildUsername, guildWorld, guildClass] = matches
             if (universal.info.realIGN != null) guildUsername = universal.info.realIGN
-            wcaGuild.guildJoin(fullMessage, guildUsername, guildWorld, guildClass)
+            wcaGuild.guildJoin(messageString, guildUsername, guildWorld, guildClass)
           } else if (guildBankRegex.test(messageString)) {
             const matches = guildBankRegex.exec(messageString)
-            let [fullMessage, shoutUsername, deposit, amount, item, fromto, guildRank] = matches
+            let [, shoutUsername, deposit, amount, item, fromto, guildRank] = matches
             if (universal.info.realIGN != null) shoutUsername = universal.info.realIGN
-            wcaGuild.guildBank(fullMessage, shoutUsername, deposit, amount, item, fromto, guildRank)
+            wcaGuild.guildBank(messageString, shoutUsername, deposit, amount, item, fromto, guildRank)
           } else if (territoryRegex.test(messageString)) {
             const matches = territoryRegex.exec(messageString)
             const [, territory, time, minutes] = matches
@@ -99,8 +99,8 @@ onMessage.onMessage = function (message, messageString, messageMotd, messageAnsi
           const shoutMessageRegex = /(\w+) \[(WC\d+)\] shouts: (.+)/
           if (shoutMessageRegex.test(messageString)) {
             const matches = shoutMessageRegex.exec(messageString)
-            const [fullMessage, username, world, shoutMessage] = matches
-            onMessage.logShout(fullMessage, username, world, shoutMessage)
+            const [, username, world, shoutMessage] = matches
+            onMessage.logShout(messageString, username, world, shoutMessage)
           }
         }
         if (config.state.bombTracker) {
