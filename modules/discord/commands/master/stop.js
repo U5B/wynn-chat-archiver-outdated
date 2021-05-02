@@ -14,7 +14,7 @@ module.exports = {
     }
     main.wca.onEnd.onKick('end_discord')
     main.log.warn(`WCA has quit game due to ${config.discord.prefix}stop from discord`)
-    message.channel.send(`WCA has quit game due to discord - type ${config.prefix}start to start it`)
+    message.channel.send(`WCA has quit game due to discord - type ${config.discord.prefix}start to start it`)
 
     main.simplediscord.sendTime(config.discord.log.statusChannel, `${config.msg.stopWCA}`)
   }

@@ -1,7 +1,8 @@
 module.exports = {
   api: {
     onlinePlayers: undefined,
-    WCStats: undefined
+    WCStats: undefined,
+    bombArray: ['YT', 'TEST']
   },
   droid: undefined,
   info: {
@@ -29,5 +30,6 @@ module.exports = {
     apiInterval: undefined,
     discordStatusInterval: undefined
   },
+  repl: undefined,
   sleep: ms => new Promise((resolve, reject) => setTimeout(resolve, ms))
 }

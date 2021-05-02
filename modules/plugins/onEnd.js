@@ -29,7 +29,6 @@ onEnd.onKick = async function (reason, loggedIn) {
     process.exit()
   } else if (kickReason === 'server_restart') {
     log.warn('Disconnected due to server restart.')
-
     simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`Server Restart\` <@!${config.discord.admin.masterUser}>`)
     onEnd.onRestart()
   } else if (kickReason === '{"text":"ReadTimeoutException : null"}') {
@@ -38,8 +37,10 @@ onEnd.onKick = async function (reason, loggedIn) {
   } else if (kickReason === '{"text":"Could not connect to a default or fallback server, please try again later: io.netty.channel.ConnectTimeoutException","color":"red"}') {
     universal.state.disconnected = false
     simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` [AutoRestart] <@!${config.discord.admin.masterUser}>`)
+  } else if (kickReason === '{"text":"","extra":[{"text":"⚠ ","color":"dark_red"},{"text":"You are already logged on to Wynncraft.","color":"red"},{"text":"\nPlease try to join again in a few minutes.","color":"gray"}]}') {
+    simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` [Login_Error] <@!${config.discord.admin.masterUser}> <@&${config.discord.admin.masterRole}>`)
   } else {
-    simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` <@!${config.masterDiscordUser}> <@&${config.masterDiscordRole}>`)
+    simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` <@!${config.discord.masterUser}> <@&${config.discord.admin.masterRole}>`)
   }
 }
 onEnd.onEnd = async function (reason) {
@@ -52,6 +53,7 @@ onEnd.onEnd = async function (reason) {
   universal.state.onlineWynn = false
   universal.state.onlineWorld = false
   universal.state.serverSwitch = false
+  universal.state.housing.online = false
   simplediscord.status() // COMMENT: check discord status // COMMENT: check discord status
   clearInterval(universal.timer.cancelCompassTimer)
   // clearInterval(npcInterval)
@@ -63,11 +65,10 @@ onEnd.onEnd = async function (reason) {
   }
 }
 onEnd.onRestart = async function (state) {
-  simplediscord.sendTime(config.discord.log.statusChannel, `${config.msg.restartWCA}`)
+  simplediscord.sendTime(config.discord.log.statusChannel, `${config.msg.startWCA} [Restart]`)
   universal.state.disconnected = false
   clearTimeout(universal.timer.cancelLoginTimer)
   universal.droid.quit()
-
   // COMMENT: The server you were previously on went down, you have been connected to a fallback server
   // COMMENT: Server restarting!
   // COMMENT: The server is restarting in 10 seconds.
@@ -78,7 +79,7 @@ onEnd.onRestart = async function (state) {
   } else {
     universal.timer.cancelLoginTimer = setTimeout(() => {
       login()
-    }, 5000)
+    }, 10000)
   }
 }
 module.exports = onEnd

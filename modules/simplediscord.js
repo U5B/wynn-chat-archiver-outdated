@@ -4,13 +4,21 @@ const universal = require('./universal.js')
 const log = require('./logging.js')
 
 const simplediscord = {}
-simplediscord.sendTime = function sendTime (channel, message) {
+simplediscord.sendTime = function (channel, message) {
   client.guilds.cache.get(config.discord.guildid).channels.cache.get(channel).send(`[${new Date(Date.now()).toLocaleTimeString('en-US')}] ${message}`)
 }
-simplediscord.sendDate = function sendDate (channel, message) {
+simplediscord.sendDate = function (channel, message) {
   client.guilds.cache.get(config.discord.guildid).channels.cache.get(channel).send(`[${new Date(Date.now()).toLocaleString('en-US')}] ${message}`)
 }
-simplediscord.status = function status (status, state, message) {
+simplediscord.sendRaw = function (channel, message) {
+  client.guilds.cache.get(config.discord.guildid).channels.cache.get(channel).send(`${message}`)
+}
+simplediscord.noMarkdown = function (message) {
+  const unescaped = message.replace(/\\(@|>|<|:|\*|_|`|~|\\)/g, '$1') // unescape any "backslashed" character
+  const escaped = unescaped.replace(/(@|>|<|:|\*|_|`|~|\\)/g, '\\$1') // escape *, _, `, ~, \
+  return escaped
+}
+simplediscord.status = function (status, state, message) {
   const onWynncraft = universal.state.onlineWynn
   const onAWorld = universal.state.onlineWorld
   const serverSwitch = universal.state.serverSwitch

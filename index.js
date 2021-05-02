@@ -7,6 +7,7 @@ const client = new discord.Client({ disableMentions: 'everyone' })
 const sleep = ms => new Promise((resolve, reject) => setTimeout(resolve, ms))
 exports.sleep = sleep
 
+const repl = require('repl')
 // SECTION: File system checks
 const fileCheck = require('./modules/fileCheck')
 fileCheck.fileCheck()
@@ -25,6 +26,8 @@ exports.client = client
 
 client.once('ready', async () => {
   // COMMENT: I am fancy and want the title to be WCA once it is logged into discord.
+  universal.repl = repl.start('> ')
+  universal.repl.context.client = client
   process.title = config.debug.title ? config.debug.title : 'Wynn Chat Archive'
   log.warn(`Logged into Discord as ${client.user.tag}`)
   await client.guilds.cache.get(config.discord.guildid).channels.cache.get(config.discord.bomb.channel).bulkDelete(100) // COMMENT: how do you delete specific messages after a certain time
@@ -37,13 +40,11 @@ client.once('ready', async () => {
 function login () {
   const version = config.droid.version
   const ip = process.argv[4] ? process.argv[4] : config.droid.ip
-  const port = process.argv[5] ? process.argv[5] : config.droid.port
   const user = process.argv[2] ? process.argv[2] : cred.username
   const pass = process.argv[3] ? process.argv[3] : cred.password
   universal.droid = mineflayer.createBot({
     version: version,
     host: ip,
-    port: port,
     username: user,
     password: pass,
     viewDistance: 'tiny',
@@ -55,11 +56,12 @@ exports.login = login
 
 const main = require('./main.js')
 function initEvents () {
+  universal.repl.context.main = main
   main.wca.api.WCStats.read()
-  main.wca.api.onlinePlayers()
+  main.wca.api.onlinePlayers.get()
   clearInterval(universal.timer.apiInterval)
   main.universal.timer.apiInterval = setInterval(() => {
-    main.wca.api.onlinePlayers()
+    main.wca.api.onlinePlayers.get()
   }, 30000)
   main.universal.droid.once('spawn', () => {
     main.wca.events.onceSpawn()
@@ -78,7 +80,10 @@ function initEvents () {
   })
   // COMMENT: This is special regexes for logging and when I can't detect special chats via chatAddPattern
   main.universal.droid.on('message', (message, pos) => {
-    main.wca.events.onMessage(message, pos)
+    main.wca.events.onChat(message, pos)
+  })
+  main.universal.droid.on('actionBar', (message) => {
+    main.wca.events.onActionBar(message)
   })
   main.universal.droid.on('bossBarUpdated', (bossBar) => {
     main.wca.events.onBossBarUpdated(bossBar)

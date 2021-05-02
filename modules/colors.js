@@ -8,7 +8,7 @@ colored.mccolor = function (str) {
   })
 }
 // COMMENT: This is used to add color to messages - unused due to chalk
-// function c (c, msg) { return '§r' + '§' + c + msg + '§r' }
+colored.c = function (c, msg) { return '§r' + '§' + c + msg + '§r' }
 // COMMENT: This is used to add resets to the beginning and ends of messages
 colored.r = function (msg) { return '§r' + msg + '§r' }
 // COMMENT: strip all ansi or color codes

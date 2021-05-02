@@ -38,6 +38,7 @@ housing.leave = async function (force) {
   }
   universal.state.housing.online = false
 }
+let clickSlimeAgain
 housing.clickSlime = async function (entityPositionX, entityPositionZ) {
   // COMMENT: Detlas housing: x: 455, y: 67.5, z:-1570.5
   universal.droid.physics.yawSpeed = 8.0
@@ -48,12 +49,17 @@ housing.clickSlime = async function (entityPositionX, entityPositionZ) {
     log.debug('found')
     await universal.droid.lookAt(target.position.offset(0, target.height / 2, 0))
     universal.droid.attack(target)
+    clickSlimeAgain = setTimeout(() => {
+      universal.droid.attack(target)
+    }, 3000)
+    log.debug('finished found')
   } else {
     log.error('not found')
   }
 }
 // COMMENT: used in onWindowOpen
 housing.clickSlot = async function () {
+  clearTimeout(clickSlimeAgain)
   await universal.sleep(500)
   await universal.droid.clickWindow(11, 0, 0)
 }

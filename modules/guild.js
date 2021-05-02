@@ -2,6 +2,7 @@ const config = require('./config/config.js')
 const { client } = require('../index.js')
 const log = require('./logging.js')
 const Timer = require('easytimer.js').Timer
+const simplediscord = require('./simplediscord.js')
 const wcaGuild = {}
 
 wcaGuild.territory = async function territoryTracker (territory, time) {
@@ -24,8 +25,6 @@ async function territoryTimer (msg, territoryMessage, duration) {
   timers.start({ countdown: true, startValues: { seconds: durationInSeconds }, target: { seconds: 0 }, precision: 'seconds' })
   timers.addEventListener('targetAchieved', async () => {
     timers.stop()
-    timers.removeEventListener('minutesUpdated')
-    timers.removeEventListener('targetAchieved')
     counter = 1
     msg.edit(territoryMessage + ' starts in **[NOW]**')
       .then(msg => {
@@ -41,9 +40,7 @@ async function territoryTimer (msg, territoryMessage, duration) {
     if (counter < 15) {
       return
     }
-    if (timeLeftSeconds === 0) {
-      timeLeftSeconds = '00'
-    }
+    if (timeLeftSeconds === 0) timeLeftSeconds = '00'
     counter = 0
     msg.edit(territoryMessage + ` starts in **[${timeLeftMinutes}:${timeLeftSeconds}]**`)
   })
@@ -76,19 +73,20 @@ wcaGuild.territoryLocation = async function getTerritoryLocation (territoryName)
 wcaGuild.guildMessage = function logGuildMessageToDiscord (fullMessage, rank, username, message) {
   const guildMessagePrefix = `[${new Date(Date.now()).toLocaleTimeString('en-US')}]` + ' '
   const guildEmoji = config.discord.guild.guildEmoji ? config.discord.guild.guildEmoji : '🚩'
+  const guildMessage = simplediscord.noMarkdown(message)
   let guildMessageSuffix
   if (rank === undefined) {
-    guildMessageSuffix = `${guildEmoji} [**${username}**] ${message}`
+    guildMessageSuffix = `${guildEmoji} [**${username}**] ${guildMessage}`
   } else {
-    guildMessageSuffix = `${guildEmoji} [**${rank}${username}**] ${message}`
+    guildMessageSuffix = `${guildEmoji} [**${rank}${username}**] ${guildMessage}`
   }
-  client.guilds.cache.get(config.discord.guildid).channels.cache.get(config.discord.guild.guildChatChannel).send(guildMessagePrefix + guildMessageSuffix)
+  client.guilds.cache.get(config.discord.guildid).channels.cache.get(config.discord.guild.chatChannel).send(guildMessagePrefix + guildMessageSuffix)
 }
 wcaGuild.guildJoin = function logGuildJoinToDiscord (fullMessage, username, world, wynnclass) {
   const guildPrefix = `[${new Date(Date.now()).toLocaleTimeString('en-US')}]` + ' '
   const guildEmoji = config.discord.guild.guildEmoji ? config.discord.guild.guildEmoji : '🚩'
   const guildSuffix = `${guildEmoji} ▶️ **${username}**`
-  client.guilds.cache.get(config.discord.guildid).channels.cache.get(config.discord.guild.guildChatChannel).send(guildPrefix + guildSuffix)
+  client.guilds.cache.get(config.discord.guildid).channels.cache.get(config.discord.guild.chatChannel).send(guildPrefix + guildSuffix)
 }
 wcaGuild.guildBank = function logGuildBankToDiscord (message, username, deposit, amount, item, fromto, rank) {
   // COMMENT: track guild bank messages
@@ -99,13 +97,13 @@ wcaGuild.guildBank = function logGuildBankToDiscord (message, username, deposit,
     // COMMENT: Do this if someone took something from the guild bank
     const bankEmoji = config.discord.guild.bankEmojiWithdraw ? config.discord.guild.bankEmojiWithdraw : '⏪'
     const sentBankMessage = `${bankMessagePrefix} ${bankEmoji} ${bankMessageSuffix}`
-    client.guilds.cache.get(config.discord.guildid).channels.cache.get(config.discord.guild.guildBankChannel).send(sentBankMessage + '')
+    client.guilds.cache.get(config.discord.guildid).channels.cache.get(config.discord.guild.bankChannel).send(sentBankMessage + '')
   }
   if (deposit === 'deposited') {
     // COMMENT: Do this if someone put something into the guild bank
     const bankEmoji = config.discord.guild.bankEmojiDeposit ? config.discord.guild.bankEmojiDeposit : '⏩'
     const sentBankMessage = `${bankMessagePrefix} ${bankEmoji} ${bankMessageSuffix}`
-    client.guilds.cache.get(config.discord.guildid).channels.cache.get(config.discord.guild.guildBankChannel).send(sentBankMessage + '')
+    client.guilds.cache.get(config.discord.guildid).channels.cache.get(config.discord.guild.bankChannel).send(sentBankMessage + '')
   }
 }
 module.exports = wcaGuild

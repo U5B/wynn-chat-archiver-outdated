@@ -39,11 +39,22 @@ events.onSpawn = async function () {
 events.onWindowOpen = function (window) {
   wcaCore.onWindowOpen(window)
 }
-events.onMessage = function (message) {
+events.onChat = function (message, pos) {
   const messageMotd = String(message.toMotd())
   const messageString = String(message.toString())
   const messageAnsi = String(message.toAnsi())
-  msg.onMessage(message, messageString, messageMotd, messageAnsi)
+  if (pos === 'chat') {
+    msg.onMessage(message, pos, messageString, messageMotd, messageAnsi)
+  } else if (pos === 'system') {
+    msg.onMessage(message, pos, messageString, messageMotd, messageAnsi)
+  } else if (pos === 'game_info') {
+    msg.onActionBar(message, pos, messageString, messageMotd, messageAnsi)
+  } else {
+    log.error(`${messageString} : ${pos}`)
+  }
+}
+events.onActionBar = function (message) {
+  // COMMENT: Do nothing
 }
 events.onBossBarUpdated = function (bossBar) {
   msg.onBossBarUpdated(bossBar)

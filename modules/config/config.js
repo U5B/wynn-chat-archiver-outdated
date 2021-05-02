@@ -10,7 +10,6 @@ module.exports = {
   droid: {
     master: config.masterUser,
     ip: config.ip,
-    port: config.port,
     version: config.version
   },
   state: {
@@ -41,6 +40,7 @@ module.exports = {
       trustedRole: config.trustedDiscordRole
     },
     log: {
+      chatChannel: config.chatChannel,
       statusChannel: config.statusChannel,
       commandChannel: config.commandChannel,
       testChannel: config.testChannel

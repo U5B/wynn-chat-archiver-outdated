@@ -9,13 +9,15 @@ module.exports = {
     // COMMENT: trusted role
     compass: require('./commands/trusted/compass'),
     hub: require('./commands/trusted/hub'),
+    switch: require('./commands/trusted/switch'),
     start: require('./commands/trusted/start'),
     stream: require('./commands/trusted/stream'),
     housing: require('./commands/trusted/housing'),
     // COMMENT: master role
     stop: require('./commands/master/stop'),
     exit: require('./commands/master/exit'),
-    sudo: require('./commands/master/sudo')
+    sudo: require('./commands/master/sudo'),
+    c: require('./commands/master/c')
   },
   checkPermissions: (cmd, msg) => {
     const permissions = cmd.permissionRoles

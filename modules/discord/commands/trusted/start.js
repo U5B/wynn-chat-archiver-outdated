@@ -8,14 +8,10 @@ module.exports = {
   allowedRoles: [config.discord.admin.masterRole, config.discord.admin.trustedRole],
   allowedChannels: [config.discord.log.commandChannel],
   execute (message, args, customs) {
-    if (main.universal.state.onlineWynn) {
-      message.channel.send(`Already online, type ${config.prefix}stop to quit Wynncraft.`)
-      return
-    }
+    if (main.universal.state.onlineWynn) return message.channel.send(`Already online, type ${config.discord.prefix}stop to quit Wynncraft.`)
     main.wca.onEnd.onRestart('discord')
-    main.log.warn(`WCA has joined game - due to ${config.prefix}start from Discord.`)
+    main.log.warn(`WCA has joined game - due to ${config.discord.prefix}start from Discord.`)
     message.channel.send('starting WCA')
-
     // main.simplediscord.sendTime(config.statusChannel, `${config.startWCA}`)
   }
 }
