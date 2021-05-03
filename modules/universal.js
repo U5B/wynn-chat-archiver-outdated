@@ -30,6 +30,5 @@ module.exports = {
     apiInterval: undefined,
     discordStatusInterval: undefined
   },
-  repl: undefined,
   sleep: ms => new Promise((resolve, reject) => setTimeout(resolve, ms))
 }

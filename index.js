@@ -7,7 +7,6 @@ const client = new discord.Client({ disableMentions: 'everyone' })
 const sleep = ms => new Promise((resolve, reject) => setTimeout(resolve, ms))
 exports.sleep = sleep
 
-const repl = require('repl')
 // SECTION: File system checks
 const fileCheck = require('./modules/fileCheck')
 fileCheck.fileCheck()
@@ -26,14 +25,6 @@ exports.client = client
 
 client.once('ready', async () => {
   // COMMENT: I am fancy and want the title to be WCA once it is logged into discord.
-  const replOptions = {
-    prompt: '$ ',
-    input: process.stdin,
-    output: process.stderr,
-    breakEvalOnSigint: true
-  }
-  universal.repl = repl.start(replOptions)
-  universal.repl.context.client = client
   process.title = config.debug.title ? config.debug.title : 'Wynn Chat Archive'
   log.warn(`Logged into Discord as ${client.user.tag}`)
   await client.guilds.cache.get(config.discord.guildid).channels.cache.get(config.discord.bomb.channel).bulkDelete(100) // COMMENT: how do you delete specific messages after a certain time
@@ -62,8 +53,6 @@ exports.login = login
 
 const main = require('./main.js')
 function initEvents () {
-  universal.repl.context.main = main
-  universal.repl.context.bot = universal.droid
   main.wca.api.WCStats.read()
   main.wca.api.onlinePlayers.get()
   clearInterval(universal.timer.apiInterval)
