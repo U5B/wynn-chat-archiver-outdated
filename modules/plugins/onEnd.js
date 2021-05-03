@@ -5,43 +5,104 @@ const simplediscord = require('../simplediscord')
 const { client, login } = require('../../index')
 
 const onEnd = {}
+let loginCounter = 0
 onEnd.onKick = async function (reason, loggedIn) {
   universal.state.disconnected = true
-  let kickReason
-  const reasonType = typeof reason
-  if (reasonType === 'string') {
-    kickReason = reason
-  } else {
-    kickReason = JSON.stringify(reason)
+  log.error(`KickReason: "${reason}" || LoginState: "${loggedIn}"`)
+  if (loggedIn === true) loginCounter = 0
+  switch (reason) {
+    case (typeof string): {
+      switch (reason) {
+        case 'end_discord': {
+          universal.droid.quit()
+          log.warn('Disconnected due to discord.')
+          break
+        }
+        case 'end_process': {
+          if (universal.droid != null) universal.droid.quit()
+          log.warn('Disconnected due to process dying.')
+          simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.processEndMessage} <@!${config.discord.admin.masterUser}>`)
+          client.user.setStatus('invisible')
+          await universal.sleep(5000)
+          log.error('Exiting process NOW')
+          process.exit()
+        }
+        case 'server_restart': {
+          log.warn('Disconnected due to server restart.')
+          simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`Server Restart\` <@!${config.discord.admin.masterUser}>`)
+          onEnd.onRestart()
+          break
+        }
+        default: {
+          log.error(`Invalid string sent: "${reason}"`)
+        }
+      }
+      break
+    }
+    default: {
+      switch (reason.text) {
+        case '': {
+          switch (reason) {
+            case (reason.extra[1].text === 'You are already logged on to Wynncraft.'): {
+              if (loginCounter === 0) universal.state.disconnected = false
+              simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` [Login_Error] <@!${config.discord.admin.masterUser}> <@&${config.discord.admin.masterRole}>`)
+              break
+            }
+            default: {
+              simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` <@!${config.discord.admin.masterUser}> <@&${config.discord.admin.masterRole}>`)
+              break
+            }
+          }
+          break
+        }
+        case ('ReadTimeoutException : null'): {
+          universal.state.disconnected = false
+          simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` [AutoRestart] <@!${config.discord.admin.masterUser}>`)
+          log.warn('Autorestarting...')
+          break
+        }
+        case ('Could not connect to a default or fallback server, please try again later: io.netty.channel.ConnectTimeoutException'): {
+          universal.state.disconnected = false
+          simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` [AutoRestart] <@!${config.discord.admin.masterUser}>`)
+          log.warn('Autorestarting...')
+          break
+        }
+        default: {
+          simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` <@!${config.discord.admin.masterUser}> <@&${config.discord.admin.masterRole}>`)
+          break
+        }
+      }
+      break
+    }
   }
-  log.error(`KickReason: "${kickReason}" || LoginState: "${loggedIn}"`)
-  if (kickReason === 'end_discord') {
+  /*
+  if (reason === 'end_discord') {
     universal.droid.quit()
     log.warn('Disconnected due to discord.')
-  } else if (kickReason === 'end_process') {
+  } else if (reason === 'end_process') {
     if (universal.droid != null) universal.droid.quit()
     log.warn('Disconnected due to process dying.')
-
     simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.processEndMessage} <@!${config.discord.admin.masterUser}>`)
     client.user.setStatus('invisible')
     await universal.sleep(5000)
     log.error('Exiting process NOW')
     process.exit()
-  } else if (kickReason === 'server_restart') {
+  } else if (reason === 'server_restart') {
     log.warn('Disconnected due to server restart.')
     simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`Server Restart\` <@!${config.discord.admin.masterUser}>`)
     onEnd.onRestart()
-  } else if (kickReason === '{"text":"ReadTimeoutException : null"}') {
+  } else if (reason === '{"text":"ReadTimeoutException : null"}') {
     universal.state.disconnected = false
     simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` [AutoRestart] <@!${config.discord.admin.masterUser}>`)
-  } else if (kickReason === '{"text":"Could not connect to a default or fallback server, please try again later: io.netty.channel.ConnectTimeoutException","color":"red"}') {
+  } else if (reason === '{"text":"Could not connect to a default or fallback server, please try again later: io.netty.channel.ConnectTimeoutException","color":"red"}') {
     universal.state.disconnected = false
     simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` [AutoRestart] <@!${config.discord.admin.masterUser}>`)
-  } else if (kickReason === '{"text":"","extra":[{"text":"⚠ ","color":"dark_red"},{"text":"You are already logged on to Wynncraft.","color":"red"},{"text":"\nPlease try to join again in a few minutes.","color":"gray"}]}') {
+  } else if (reason === '{"text":"","extra":[{"text":"⚠ ","color":"dark_red"},{"text":"You are already logged on to Wynncraft.","color":"red"},{"text":"\nPlease try to join again in a few minutes.","color":"gray"}]}') {
     simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` [Login_Error] <@!${config.discord.admin.masterUser}> <@&${config.discord.admin.masterRole}>`)
   } else {
-    simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` <@!${config.discord.masterUser}> <@&${config.discord.admin.masterRole}>`)
+    simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` <@!${config.discord.admin.masterUser}> <@&${config.discord.admin.masterRole}>`)
   }
+  */
 }
 onEnd.onEnd = async function (reason) {
   if (reason == null) {
@@ -65,7 +126,6 @@ onEnd.onEnd = async function (reason) {
   }
 }
 onEnd.onRestart = async function (state) {
-  simplediscord.sendTime(config.discord.log.statusChannel, `${config.msg.startWCA} [Restart]`)
   universal.state.disconnected = false
   clearTimeout(universal.timer.cancelLoginTimer)
   universal.droid.quit()
@@ -75,11 +135,13 @@ onEnd.onRestart = async function (state) {
   // COMMENT: The server is restarting in 5 seconds.
   // COMMENT: The server is restarting in 1 second.
   if (state === 'discord') {
+    simplediscord.sendTime(config.discord.log.statusChannel, `${config.msg.startWCA} [Restart]`)
     login()
   } else {
+    simplediscord.sendTime(config.discord.log.statusChannel, `${config.msg.startWCA} [Restart_5s]`)
     universal.timer.cancelLoginTimer = setTimeout(() => {
       login()
-    }, 10000)
+    }, 5000)
   }
 }
 module.exports = onEnd
