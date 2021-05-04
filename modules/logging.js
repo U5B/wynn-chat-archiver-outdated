@@ -27,8 +27,9 @@ debug.warn.color = 3
 // SECTION: end color functions | begin time
 
 // SECTION: begin logging
-const chatFileName = `chat-${new Date(Date.now()).toLocaleDateString().replace(/\//g, '_')}.json`
 let data = {}
+let writeInterval
+const chatFileName = `chat-${new Date(Date.now()).toLocaleDateString().replace(/\//g, '_')}.json`
 const ls = fs.createWriteStream(`./logs/log-${new Date(Date.now()).toLocaleDateString().replace(/\//g, '_')}.txt`, { flags: 'a' }) // COMMENT: just unformatted chat messages
 const ds = fs.createWriteStream(`./logs/debug/debug-${new Date(Date.now()).toLocaleDateString().replace(/\//g, '_')}.txt`, { flags: 'a' }) // COMMENT: formatted chat messages and debug
 const log = {
@@ -87,8 +88,9 @@ const log = {
     // debug.verbose(`[${new Date(Date.now()).toLocaleString('en-US')}]` + ' ' + chat)
   },
   async getChat () {
+    clearInterval(writeInterval)
     data = await getData()
-    setInterval(write, 30000)
+    writeInterval = setInterval(write, 30000)
   }
 }
 // COMMENT: U9G thanks for code - this basically logs chat and only chat
