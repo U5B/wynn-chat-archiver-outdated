@@ -109,8 +109,8 @@ onMessage.onMessage = function (message, pos, messageString, messageMotd, messag
         // const sanatizeMessage = /(\[.+\] .+: .*|\[.* . .*\] .*)/
         const bombBellRegex = /§r§e\[Bomb Bell\] §r§f(\w+?) §r§7has thrown (?:a|an) §r§f(.+?) Bomb §r§7on §r§f(WC\d+)§r/
         const bombBellNickedRegex = /§r§e\[Bomb Bell\] §r§f§r§f§r§f§o(.+?)§r§f §r§7has thrown (?:a|an) §r§f(.+?) Bomb §r§7on §r§f(WC\d+)§r/
-        const bombThrownRegex = /§r§b(\w+?)§r§3 has thrown (?:a|an) §r§b(\w+?) Bomb§r§3!.*/
-        const bombThrownNickedRegex = /§r§b§r§b§o(.+?)§r§3 has thrown (?:a|an) §r§b(\w+?) Bomb§r§3!.*/
+        const bombThrownRegex = /§r§b(\w+?)§r§3 has thrown (?:a|an) §r§b(.+?) Bomb§r§3!.*/
+        const bombThrownNickedRegex = /§r§b§r§b§o(.+?)§r§3 has thrown (?:a|an) §r§b(.+?) Bomb§r§3!.*/
         if (bombBellNickedRegex.test(messageMotd)) {
           const matches = bombBellNickedRegex.exec(messageMotd)
           let [, username, bomb, world] = matches
