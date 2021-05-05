@@ -5,13 +5,13 @@ const simplediscord = require('../simplediscord')
 const { client, login } = require('../../index')
 
 const onEnd = {}
-let loginCounter = 0
+let loginAgain = false
 onEnd.onKick = async function (reason, loggedIn) {
   universal.state.disconnected = true
-  log.error(`KickReason: "${reason}" || LoginState: "${loggedIn}"`)
-  if (loggedIn === true) loginCounter = 0
-  switch (reason) {
-    case (typeof string): {
+  log.error(`KickReason: "${reason}" || LoginState: "${loggedIn}" || Type: ${typeof reason}`)
+  if (loggedIn === true) loginAgain = true
+  switch (typeof reason) {
+    case ('string'): {
       switch (reason) {
         case 'end_discord': {
           universal.droid.quit()
@@ -34,11 +34,53 @@ onEnd.onKick = async function (reason, loggedIn) {
           break
         }
         default: {
-          log.error(`Invalid string sent: "${reason}"`)
+          const JSONreason = JSON.parse(reason)
+          switch (JSONreason.text) {
+            case '': {
+              switch (JSONreason.extra[1].text) {
+                case 'You are already logged on to Wynncraft.': {
+                  if (loginAgain === true) universal.state.disconnected = false
+                  simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` [Login_Error] <@!${config.discord.admin.masterUser}> <@&${config.discord.admin.masterRole}>`)
+                  loginAgain = false
+                  break
+                }
+                case 'All lobbies are currently full.': {
+                  universal.state.disconnected = false
+                  simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` [Lobby_Full] <@!${config.discord.admin.masterUser}> <@&${config.discord.admin.masterRole}>`)
+                  break
+                }
+                default: {
+                  console.log(JSONreason.extra[1].text)
+                  simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` <@!${config.discord.admin.masterUser}> <@&${config.discord.admin.masterRole}>`)
+                  break
+                }
+              }
+              break
+            }
+            case ('ReadTimeoutException : null'): {
+              universal.state.disconnected = false
+              simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` [Timeout_Error] <@!${config.discord.admin.masterUser}>`)
+              log.warn('Autorestarting...')
+              break
+            }
+            case ('Could not connect to a default or fallback server, please try again later: io.netty.channel.ConnectTimeoutException'): {
+              universal.state.disconnected = false
+              simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` [Lobby_Error] <@!${config.discord.admin.masterUser}>`)
+              log.warn('Autorestarting...')
+              break
+            }
+            default: {
+              simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` <@!${config.discord.admin.masterUser}> <@&${config.discord.admin.masterRole}>`)
+              log.error(`Invalid string sent: "${reason}"`)
+              break
+            }
+          }
+          break
         }
       }
       break
     }
+    /*
     default: {
       switch (reason.text) {
         case '': {
@@ -74,6 +116,7 @@ onEnd.onKick = async function (reason, loggedIn) {
       }
       break
     }
+    */
   }
   /*
   if (reason === 'end_discord') {

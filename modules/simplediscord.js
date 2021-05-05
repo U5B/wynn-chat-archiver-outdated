@@ -14,8 +14,8 @@ simplediscord.sendRaw = function (channel, message) {
   client.guilds.cache.get(config.discord.guildid).channels.cache.get(channel).send(`${message}`)
 }
 simplediscord.noMarkdown = function (message) {
-  const unescaped = message.replace(/\\(@|>|<|:|\*|_|`|~|\\)/g, '$1') // unescape any "backslashed" character
-  const escaped = unescaped.replace(/(@|>|<|:|\*|_|`|~|\\)/g, '\\$1') // escape *, _, `, ~, \
+  const unescaped = message.replace(/\\(\||@|>|<|:|\*|_|`|~|\\)/g, '$1') // COMMENT: unescape any "backslashed" markdown
+  const escaped = unescaped.replace(/(\||@|>|<|:|\*|_|`|~|\\)/g, '\\$1') // COMMENT: escape the markdown
   return escaped
 }
 simplediscord.status = function (status, state, message) {

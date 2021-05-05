@@ -90,7 +90,7 @@ const log = {
   async getChat () {
     clearInterval(writeInterval)
     data = await getData()
-    writeInterval = setInterval(write, 30000)
+    writeInterval = setInterval(write, 45000)
   }
 }
 // COMMENT: U9G thanks for code - this basically logs chat and only chat

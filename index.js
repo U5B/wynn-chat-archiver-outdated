@@ -7,6 +7,7 @@ const client = new discord.Client({ disableMentions: 'everyone' })
 const sleep = ms => new Promise((resolve, reject) => setTimeout(resolve, ms))
 exports.sleep = sleep
 
+const repl = require('repl')
 // SECTION: File system checks
 const fileCheck = require('./modules/fileCheck')
 fileCheck.fileCheck()
@@ -24,6 +25,14 @@ client.login(cred.discordToken)
 exports.client = client
 
 client.once('ready', async () => {
+  const replOptions = {
+    prompt: '$ ',
+    input: process.stdin,
+    output: process.stderr,
+    breakEvalOnSigint: true
+  }
+  universal.repl = repl.start(replOptions)
+  universal.repl.context.client = client
   // COMMENT: I am fancy and want the title to be WCA once it is logged into discord.
   process.title = config.debug.title ? config.debug.title : 'Wynn Chat Archive'
   log.warn(`Logged into Discord as ${client.user.tag}`)
@@ -53,6 +62,8 @@ exports.login = login
 
 const main = require('./main.js')
 function initEvents () {
+  universal.repl.context.main = main
+  universal.repl.context.bot = universal.droid
   main.wca.api.WCStats.read()
   main.wca.api.onlinePlayers.get()
   clearInterval(universal.timer.apiInterval)
