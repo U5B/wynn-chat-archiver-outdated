@@ -35,6 +35,7 @@ onEnd.onKick = async function (reason, loggedIn) {
         }
         default: {
           const JSONreason = JSON.parse(reason)
+          log.verbose(reason)
           switch (JSONreason.text) {
             case '': {
               switch (JSONreason.extra[1].text) {
@@ -50,7 +51,6 @@ onEnd.onKick = async function (reason, loggedIn) {
                   break
                 }
                 default: {
-                  console.log(JSONreason.extra[1].text)
                   simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` <@!${config.discord.admin.masterUser}> <@&${config.discord.admin.masterRole}>`)
                   break
                 }

@@ -40,12 +40,8 @@ onMessage.onMessage = function (message, pos, messageString, messageMotd, messag
       // onKick('server_restart')
       wcaCore.switch('Server_Restart')
     } else if (bombThankRegex.test(messageString)) {
-      if (config.state.ignoreBombs) return
       // COMMENT: get off the server if an bomb is thrown - some people do item bomb parties
-      universal.timer.hubTimer = setTimeout(() => {
-        log.log(`going to hub because bomb was thrown on ${universal.info.currentWorld}`)
-        wcaCore.hub('Bomb_Thanks')
-      }, 2000)
+      wcaBomb.bombThanks()
     } else if (worldJoinRegex.test(messageMotd)) {
       const matches = worldJoinRegex.exec(messageMotd)
       if (matches[1] === universal.info.droidIGN || matches[1] === universal.info.droidNickedIGN) {
@@ -185,13 +181,13 @@ onMessage.onActionBar = function (message, pos, messageString, messageMotd, mess
 }
 onMessage.onBossBarUpdated = function (bossBar) {
   // COMMENT: get off the server if a bomb is in the bossbar
-  const bombBarRegex = /(.+) from (.+) \[(\d+) min\]/
+  const bombBarRegex = /(.+?) from (.+?) \[(\d+) min\]/
   const bossBarString = color.stripthes(bossBar.title.text)
   if (bombBarRegex.test(bossBarString)) {
-    if (config.state.ignoreBombs) return
-    clearTimeout(universal.timer.hubTimer)
-    log.log(`going to hub because bomb was detected on BossBar on ${universal.info.currentWorld}`)
-    wcaCore.hub('Bomb_BossBar')
+    const matches = bombBarRegex.exec(bossBarString)
+    const [, , , duration] = matches
+    log.log(duration)
+    wcaBomb.bossBarBomb(duration)
   }
 }
 module.exports = onMessage

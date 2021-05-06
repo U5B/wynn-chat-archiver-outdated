@@ -17,7 +17,7 @@ files.optimalWorlds = async function () {
     .sort(([worldA, a], [worldB, b]) => (a.players).length - (b.players).length)
   return optimalWorld
 }
-files.listOnline = function (world) {
+files.listOnline = async function (world) {
   // COMMENT: read onlinePlayers.json and return the playercount of the argument / world
   let playerCountResponse = -1
   const parsed = universal.api.onlinePlayers
