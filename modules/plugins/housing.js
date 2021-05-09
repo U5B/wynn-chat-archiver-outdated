@@ -53,7 +53,7 @@ housing.clickSlime = async function (entityString, entityPositionX, entityPositi
     log.debug('finished found')
   } else {
     log.error('not found')
-    if (slimeRetry === false) housing.clickSlime('armor_stand', 455, -1570.5)
+    if (slimeRetry === true) housing.clickSlime('armor_stand', 455, -1570.5)
     slimeRetry = false
   }
 }
@@ -67,6 +67,7 @@ housing.attack = async function (target) {
 // COMMENT: used in onWindowOpen
 housing.clickSlot = async function () {
   clearTimeout(clickSlimeAgain)
+  slimeRetry = true
   await universal.sleep(500)
   await universal.droid.clickWindow(11, 0, 0)
 }
