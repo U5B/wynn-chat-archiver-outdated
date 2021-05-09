@@ -19,6 +19,7 @@ const cred = require('./modules/config/cred.json')
 // COMMENT: "global" variables
 const log = require('./modules/logging')
 const universal = require('./modules/universal')
+let startup = false
 
 // SECTION: end logging / begin Discord
 client.login(cred.discordToken)
@@ -36,7 +37,6 @@ client.once('ready', async () => {
   // COMMENT: I am fancy and want the title to be WCA once it is logged into discord.
   process.title = config.debug.title ? config.debug.title : 'Wynn Chat Archive'
   log.warn(`Logged into Discord as ${client.user.tag}`)
-  await client.guilds.cache.get(config.discord.guildid).channels.cache.get(config.discord.bomb.channel).bulkDelete(100) // COMMENT: how do you delete specific messages after a certain time
   login()
   // COMMENT: run this function whenever I recieve a discord message
   client.on('message', async message => {
@@ -62,6 +62,8 @@ exports.login = login
 
 const main = require('./main.js')
 function initEvents () {
+  if (startup === false) main.simplediscord.deleteOldBombs()
+  startup = true
   universal.repl.context.main = main
   universal.repl.context.bot = universal.droid
   main.wca.api.WCStats.read()
@@ -101,7 +103,7 @@ function initEvents () {
   main.universal.droid.on('end', (reason) => {
     main.wca.onEnd.onEnd(reason)
   })
-  universal.droid.on('error', function onErrorFunctionListener (err) { log.error(err) })
+  main.universal.droid.on('error', function onErrorFunctionListener (err) { log.error(err) })
 }
 
 const discordCommands = require('./modules/discord')

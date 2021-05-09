@@ -7,7 +7,7 @@ const simplediscord = require('../simplediscord.js')
 housing.start = async function () {
   if (universal.state.housing.online || !universal.state.onlineWynn || !universal.state.onlineWorld) return
   // log.debug(universal.droid.nearestEntity())
-  housing.clickSlime(455, -1570.5)
+  housing.clickSlime('slime', 452.5, -1570.5)
 }
 housing.restart = async function () {
   housing.leave(true)
@@ -39,23 +39,30 @@ housing.leave = async function (force) {
   universal.state.housing.online = false
 }
 let clickSlimeAgain
-housing.clickSlime = async function (entityPositionX, entityPositionZ) {
-  // COMMENT: Detlas housing: x: 455, y: 67.5, z:-1570.5
+let slimeRetry = true
+housing.clickSlime = async function (entityString, entityPositionX, entityPositionZ) {
+  // COMMENT: Detlas housing: 455 68 -1570.5
+  // COMMENT: Detlas housing slime: 452.5 66.5 -1570.5
   universal.droid.physics.yawSpeed = 8.0
-  const filter = entity => entity.name === 'slime' && entity.position.x === entityPositionX && entity.position.z === entityPositionZ && entity.position.distanceTo(universal.droid.entity.position) < 6
+  const filter = entity => entity.name === entityString && entity.position.x === entityPositionX && entity.position.z === entityPositionZ && entity.position.distanceTo(universal.droid.entity.position) < 6
   const target = universal.droid.nearestEntity(filter)
   log.debug(universal.droid.nearestEntity())
   if (target) {
     log.debug('found')
-    await universal.droid.lookAt(target.position.offset(0, target.height / 2, 0))
-    universal.droid.attack(target)
-    clickSlimeAgain = setTimeout(() => {
-      universal.droid.attack(target)
-    }, 3000)
+    housing.attack(target)
     log.debug('finished found')
   } else {
     log.error('not found')
+    if (slimeRetry === false) housing.clickSlime('armor_stand', 455, -1570.5)
+    slimeRetry = false
   }
+}
+housing.attack = async function (target) {
+  await universal.droid.lookAt(target.position.offset(0, target.height / 2, 0))
+  universal.droid.attack(target)
+  clickSlimeAgain = setTimeout(() => {
+    universal.droid.attack(target)
+  }, 3000)
 }
 // COMMENT: used in onWindowOpen
 housing.clickSlot = async function () {

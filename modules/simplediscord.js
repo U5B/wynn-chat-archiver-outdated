@@ -18,6 +18,10 @@ simplediscord.noMarkdown = function (message) {
   const escaped = unescaped.replace(/(\||@|>|<|:|\*|_|`|~|\\)/g, '\\$1') // COMMENT: escape the markdown
   return escaped
 }
+simplediscord.deleteOldBombs = async function () {
+  const message = await client.guilds.cache.get(config.discord.guildid).channels.cache.get(config.discord.bomb.channel).messages.fetch({ limit: 100 })
+  message.forEach(msg => msg.delete())
+}
 simplediscord.status = function (status, state, message) {
   const onWynncraft = universal.state.onlineWynn
   const onAWorld = universal.state.onlineWorld
