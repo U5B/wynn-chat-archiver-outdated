@@ -148,7 +148,7 @@ module.exports = {
         break
       }
       default: {
-        message.channel.send(`${config.discord.prefix}housing <invite|kick||ban|start|end|public> [player] [true|false]`)
+        message.channel.send(`${config.discord.prefix}housing <invite|kick||ban|start|stop|public|list> [player] [true|false]`)
         break
       }
     }
