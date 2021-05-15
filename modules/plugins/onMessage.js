@@ -127,7 +127,7 @@ onMessage.onMessage = function (message, pos, messageString, messageMotd, messag
           wcaBomb.logBomb(messageString, username, bomb, universal.info.currentWorld)
           // COMMENT: go to hub
           if (config.state.ignoreBombs) return
-          wcaCore.hub('Bomb')
+          wcaCore.switch('Bomb')
         } else if (bombThrownRegex.test(messageMotd)) {
           const matches = bombThrownRegex.exec(messageMotd)
           const [, username, bomb] = matches
@@ -136,7 +136,7 @@ onMessage.onMessage = function (message, pos, messageString, messageMotd, messag
           wcaBomb.logBomb(messageString, username, bomb, universal.info.currentWorld)
           // COMMENT: go to hub
           if (config.state.ignoreBombs) return
-          wcaCore.hub('Bomb')
+          wcaCore.switch('Bomb')
         }
       }
       if (config.state.housingTracker) {

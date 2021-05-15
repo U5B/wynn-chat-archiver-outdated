@@ -59,9 +59,16 @@ housing.clickSlime = async function (entityString, entityPositionX, entityPositi
 }
 housing.attack = async function (target) {
   await universal.droid.lookAt(target.position.offset(0, target.height / 2, 0))
-  universal.droid.attack(target)
+  await universal.droid.attack(target)
   clickSlimeAgain = setTimeout(() => {
     universal.droid.attack(target)
+  }, 3000)
+}
+housing.activate = async function (target) {
+  await universal.droid.lookAt(target.position.offset(0, target.height / 2, 0))
+  await universal.droid.activateEntity(target)
+  clickSlimeAgain = setTimeout(() => {
+    universal.droid.activateEntity(target)
   }, 3000)
 }
 // COMMENT: used in onWindowOpen

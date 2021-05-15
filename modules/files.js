@@ -55,7 +55,7 @@ function sanitize (args) {
 files.getBombStats = function (world, statsInput) {
   // QUOTE: "this could be done so much better" - U9G
   // COMMENT: read WCStats and get some bomb stats
-  const parsed = universal.api.WCStats
+  const parsed = universal.api.WCStats.bombs
   const combatXPEmoji = config.discord.bomb.combatXPEmoji ? config.discord.bomb.combatXPEmoji : '💣'
   const lootEmoji = config.discord.bomb.lootEmoji ? config.discord.bomb.lootEmoji : '💣'
   const dungeonEmoji = config.discord.bomb.dungeonEmoji ? config.discord.bomb.dungeonEmoji : '💣'
@@ -80,7 +80,7 @@ files.getBombStats = function (world, statsInput) {
   return worldStats
 }
 files.getBombLeaderboard = function (input) {
-  const parsed = universal.api.WCStats
+  const parsed = universal.api.WCStats.bombs
   const stats = sanitize(input)
   if (stats == null) return null
   return Object.entries(parsed)
@@ -92,9 +92,9 @@ files.getBombLeaderboard = function (input) {
 files.writeBombStats = function (world, bomb) {
   // QUOTE: "this could be done so much better" - U9G
   // COMMENT: Add +1 to a specific bomb on a world
-  if (!universal.api.WCStats[world]) return
+  if (!universal.api.WCStats.bombs[world]) return
   log.log(`${world}: ${bomb}`)
-  universal.api.WCStats[world][bomb]++
+  universal.api.WCStats.bombs[world][bomb]++
   api.WCStats.write()
 }
 module.exports = files
