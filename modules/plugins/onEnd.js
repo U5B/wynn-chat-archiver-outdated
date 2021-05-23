@@ -21,7 +21,6 @@ onEnd.onKick = async function (reason, loggedIn) {
         case 'end_process': {
           if (universal.droid != null) universal.droid.quit()
           log.warn('Disconnected due to process dying.')
-          simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.processEndMessage} <@!${config.discord.admin.masterUser}>`)
           client.user.setStatus('invisible')
           await universal.sleep(5000)
           log.error('Exiting process NOW')
@@ -171,7 +170,6 @@ onEnd.onEnd = async function (reason) {
 onEnd.onRestart = async function (state) {
   universal.state.disconnected = false
   clearTimeout(universal.timer.cancelLoginTimer)
-  universal.droid.quit()
   // COMMENT: The server you were previously on went down, you have been connected to a fallback server
   // COMMENT: Server restarting!
   // COMMENT: The server is restarting in 10 seconds.

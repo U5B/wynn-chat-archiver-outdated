@@ -2,5 +2,10 @@
   "username": "email@email.com",
   "password": "password",
   "discordToken": "your-absurd-discord-token-here",
+  "mongodb": "https://mongodb-database-link",
+  "debug": {
+    "logging": "DEBUG,CHAT,INFO,ERROR,WARN,VERBOSE,LOG",
+    "state": true
+  },
   "test": "test"
 }

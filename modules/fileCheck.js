@@ -31,6 +31,6 @@ filesCheck.fileCheck = async function filesExist () {
     const jsonString = JSON.stringify(data, null, 2)
     fs.writeFileSync(path.join(__dirname, '/api/WCStats.json'), jsonString)
   }
-  if (!fs.existsSync(path.join(__dirname, '/config/config.json')) || !fs.existsSync(path.join(__dirname, '/config/cred.json'))) throw new Error('Missing config files! Put config.json & cred.json inside ./modules/config/')
+  // if (!fs.existsSync(path.join(__dirname, '/config/config.json')) || !fs.existsSync(path.join(__dirname, '/config/cred.json'))) throw new Error('Missing config files! Put config.json & cred.json inside ./modules/config/')
 }
 module.exports = filesCheck

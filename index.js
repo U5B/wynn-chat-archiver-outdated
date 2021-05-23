@@ -1,30 +1,34 @@
-process.env.DEBUG = 'DEBUG,CHAT,INFO,ERROR,WARN,VERBOSE,LOG'
+// COMMENT: require cred and stuff first
+const cred = require('./modules/config/cred.json')
+process.env.DEBUG = cred.debug.logging
 // SECTION: Mineflayer modules
 const mineflayer = require('mineflayer')
 // SECTION: Discord modules
 const discord = require('discord.js')
 const client = new discord.Client({ disableMentions: 'everyone' })
-const sleep = ms => new Promise((resolve, reject) => setTimeout(resolve, ms))
-exports.sleep = sleep
 
 const repl = require('repl')
 // SECTION: File system checks
-const fileCheck = require('./modules/fileCheck')
-fileCheck.fileCheck()
-// COMMENT: other files
 
 // SECTION: all of the configs I need and wynncraft api
-const config = require('./modules/config/config.js')
-const cred = require('./modules/config/cred.json')
 // COMMENT: "global" variables
 const log = require('./modules/logging')
-const universal = require('./modules/universal')
+const mongos = require('./modules/mongodb/mongodb')
 let startup = false
+let config
 
 // SECTION: end logging / begin Discord
-client.login(cred.discordToken)
+async function start () {
+  const fileCheck = require('./modules/fileCheck')
+  await fileCheck.fileCheck()
+  await mongos.start()
+  client.login(cred.discordToken)
+  config = require('./modules/config/config')
+}
+start()
 exports.client = client
 
+const universal = require('./modules/universal')
 client.once('ready', async () => {
   const replOptions = {
     prompt: '$ ',
@@ -35,9 +39,8 @@ client.once('ready', async () => {
   universal.repl = repl.start(replOptions)
   universal.repl.context.client = client
   // COMMENT: I am fancy and want the title to be WCA once it is logged into discord.
-  process.title = config.debug.title ? config.debug.title : 'Wynn Chat Archive'
+  process.title = cred.debug.title
   log.warn(`Logged into Discord as ${client.user.tag}`)
-  login()
   // COMMENT: run this function whenever I recieve a discord message
   client.on('message', async message => {
     runDiscord(message)
@@ -60,8 +63,8 @@ function login () {
 }
 exports.login = login
 
-const main = require('./main.js')
 function initEvents () {
+  const main = require('./main.js')
   if (startup === false) main.simplediscord.deleteOldBombs()
   startup = true
   universal.repl.context.main = main
@@ -106,8 +109,8 @@ function initEvents () {
   main.universal.droid.on('error', function onErrorFunctionListener (err) { log.error(err) })
 }
 
-const discordCommands = require('./modules/discord')
 async function runDiscord (message) {
+  const discordCommands = require('./modules/discord')
   // COMMENT: if message doesn't start with the prefix, message author is WCA
   if (message.author.bot) return
   if (message.content.startsWith(config.discord.prefix)) {
@@ -133,11 +136,14 @@ async function runDiscord (message) {
 }
 
 process.once('SIGINT', function onSIGINT () {
+  const main = require('./main.js')
   main.wca.onEnd.onKick('end_process')
 })
 process.once('SIGHUP', function onSIGHUP () {
+  const main = require('./main.js')
   main.wca.onEnd.onKick('end_process')
 })
 process.once('SIGTERM', function onSIGTERM () {
+  const main = require('./main.js')
   main.wca.onEnd.onKick('end_process')
 })

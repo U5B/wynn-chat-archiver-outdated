@@ -31,5 +31,14 @@ module.exports = {
     discordStatusInterval: undefined
   },
   repl: undefined,
+  mongodb: {
+    config: {
+      discord: {},
+      droid: {}
+    },
+    data: {
+      bombs: {}
+    }
+  },
   sleep: ms => new Promise((resolve, reject) => setTimeout(resolve, ms))
 }

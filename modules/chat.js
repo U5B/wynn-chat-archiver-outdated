@@ -16,8 +16,8 @@ chat.logChat = function (message, messageString, pos) {
   log.verbose(`${JSON.stringify(message.json)} | ${pos}`)
   // COMMENT: Champion Nickname detector - used to get the real username of the bomb thrower and guild messages
   chat.champion(message)
-  const excludeSpam = /(\[Info\] .+|As the sun rises, you feel a little bit safer...|\[\+\d+ Soul Points?\]|You still have \d+ unused skill points! Click with your compass to use them!|You have \d+ unused Skill Points! Right-Click while holding your compass to use them!)/
-  const exculdeDiscord = /(\[Info\] .+|As the sun rises, you feel a little bit safer...|\[\+\d+ Soul Points?\]|You still have \d+ unused skill points! Click with your compass to use them!|You have \d+ unused Skill Points! Right-Click while holding your compass to use them!)/
+  const excludeSpam = /(\[Info\] .+|As the sun rises, you feel a little bit safer...|\[\+\d+ Soul Points?\]|You have \d+ unused Skill Points! Right-Click while holding your compass to use them!)/
+  const exculdeDiscord = /(\[Info\] .+|As the sun rises, you feel a little bit safer...|\[\+\d+ Soul Points?\]|You have \d+ unused Skill Points! Right-Click while holding your compass to use them!)/
   if (!excludeSpam.test(messageString)) {
     if (messageString.trim() === '') return
     log.chat(`${message.toMotd()} | ${pos}`)

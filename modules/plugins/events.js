@@ -7,11 +7,15 @@ const msg = require('./onMessage')
 const events = {}
 events.onceLogin = function () {
   log.warn('Connected to Wynncraft.')
-  // COMMENT: onWynncraft is set to true on startup
+  // COMMENT: reset all variables on first startup
   universal.state.disconnected = false
   universal.state.onlineWynn = true
+  universal.state.housing.online = false
+  universal.state.onlineWorld = false
+  universal.state.compassCheck = false
+  universal.state.serverSwitch = false
+  universal.info.currentWorld = 'WC0'
   universal.info.droidIGN = universal.droid.username
-
   simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.firstConnectMessage}`)
 }
 events.onLogin = function () {
@@ -27,7 +31,6 @@ events.onLogin = function () {
   log.warn('Connected.')
 }
 events.onceSpawn = function () {
-  log.getChat()
 }
 events.onSpawn = async function () {
   log.log('Spawn event fired.')
