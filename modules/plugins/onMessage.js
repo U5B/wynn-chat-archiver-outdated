@@ -22,9 +22,11 @@ onMessage.onMessage = function (message, pos, messageString, messageMotd, messag
     // COMMENT: Regex for messages in hub that do fire the login event.
     const compassCheckRegex = /(You're rejoining too quickly! Give us a moment to save your data\.|Already connecting to this server!)/
     // COMMENT: Regex for messages in hub that don't fire the login event.
-    const compassCheckErrors = /(Failed to send you to target server\. So we're sending you back\.|Could not connect to a default or fallback server, please try again later: io\.netty\.channel\..*|You are already connected to this server!|The server is full!|.* left the game.|<\w+> .*)/
+    const compassCheckErrors = /(Failed to send you to target server\. So we're sending you back\.|Could not connect to a default or fallback server, please try again later: io\.netty\.channel\..*|You are already connected to this server!|The server is full!)/
     // COMMENT: Regex for server restarts.
-    const serverRestartRegex = /(The server is restarting in (1|30) (minute|second)s?\.|Server restarting!|The server you were previously on went down, you have been connected to a fallback server|Server closed|\[Proxy\] Lost connection to server\.)/
+    const serverRestartRegex = /(The server is restarting in (1|30) (minute|second)s?\.|Server restarting!)/
+    // COMMENT: Regex for server crashes.
+    const serverCrashRegex = /(.* left the game.|<\w+> .*|The server you were previously on went down, you have been connected to a fallback server|Server closed|\[Proxy\] Lost connection to server\.)/
     // COMMENT: Regex for bombs.
     const bombThankRegex = /Want to thank (.+)\? Click here to thank them!/
     // COMMENT: Regex for joining a world.
@@ -35,6 +37,8 @@ onMessage.onMessage = function (message, pos, messageString, messageMotd, messag
       universal.state.compassCheck = true
       // wcacore.compass()
     } else if (compassCheckErrors.test(messageString)) {
+      wcaCore.lobbyError('LobbyError')
+    } else if (serverCrashRegex.test(messageString)) {
       wcaCore.lobbyError('LobbyError')
     } else if (serverRestartRegex.test(messageString)) {
       // onKick('server_restart')
@@ -127,6 +131,7 @@ onMessage.onMessage = function (message, pos, messageString, messageMotd, messag
           wcaBomb.logBomb(messageString, username, bomb, universal.info.currentWorld)
           // COMMENT: go to hub
           if (config.state.ignoreBombs) return
+          clearTimeout(universal.timer.hubTimer)
           wcaCore.switch('Bomb')
         } else if (bombThrownRegex.test(messageMotd)) {
           const matches = bombThrownRegex.exec(messageMotd)
@@ -136,6 +141,7 @@ onMessage.onMessage = function (message, pos, messageString, messageMotd, messag
           wcaBomb.logBomb(messageString, username, bomb, universal.info.currentWorld)
           // COMMENT: go to hub
           if (config.state.ignoreBombs) return
+          clearTimeout(universal.timer.hubTimer)
           wcaCore.switch('Bomb')
         }
       }

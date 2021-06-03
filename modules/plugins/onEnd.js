@@ -68,6 +68,11 @@ onEnd.onKick = async function (reason, loggedIn) {
               log.warn('Autorestarting...')
               break
             }
+            case ('Could not connect to a default or fallback server, please try again later: io.netty.channel.AbstractChannel$AnnotatedConnectException'): {
+              universal.state.disconnected = false
+              simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` [Lobby_Error] <@!${config.discord.admin.masterUser}>`)
+              log.warn('Autorestarting...')
+            }
             default: {
               simplediscord.sendDate(config.discord.log.statusChannel, `${config.msg.kickMessage} \`${reason}\` <@!${config.discord.admin.masterUser}> <@&${config.discord.admin.masterRole}>`)
               log.error(`Invalid string sent: "${reason}"`)
@@ -179,10 +184,10 @@ onEnd.onRestart = async function (state) {
     simplediscord.sendTime(config.discord.log.statusChannel, `${config.msg.startWCA} [Restart]`)
     login()
   } else {
-    simplediscord.sendTime(config.discord.log.statusChannel, `${config.msg.startWCA} [Restart_5s]`)
+    simplediscord.sendTime(config.discord.log.statusChannel, `${config.msg.startWCA} [Restart_30s]`)
     universal.timer.cancelLoginTimer = setTimeout(() => {
       login()
-    }, 5000)
+    }, 30000)
   }
 }
 module.exports = onEnd
